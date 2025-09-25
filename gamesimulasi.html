@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Von Neumann & PC Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes dataFlow {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            25% { transform: translateX(200px) scale(1.2); opacity: 0.8; }
+            50% { transform: translateX(400px) scale(1); opacity: 0.9; }
+            75% { transform: translateX(600px) scale(1.2); opacity: 0.8; }
+            100% { transform: translateX(800px) scale(1); opacity: 1; }
+        }
+        
+        @keyframes robotWalk {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes errorBlink {
+            0%, 100% { background-color: #ef4444; }
+            50% { background-color: #dc2626; }
+        }
+        
+        @keyframes celebration {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.1); }
+            75% { transform: rotate(10deg) scale(1.1); }
+        }
+        
+        @keyframes handPoint {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+        
+        @keyframes pcPowerOn {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        @keyframes fanSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .bounce { animation: bounce 2s infinite; }
+        .pulse { animation: pulse 2s infinite; }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .glow { animation: glow 2s infinite; }
+        .spin { animation: spin 2s linear infinite; }
+        .data-flow { animation: dataFlow 3s ease-in-out; }
+        .robot-walk { animation: robotWalk 0.5s infinite; }
+        .error-blink { animation: errorBlink 0.5s infinite; }
+        .celebration { animation: celebration 0.6s ease-in-out; }
+        .hand-point { animation: handPoint 1s infinite; }
+        .pc-power-on { animation: pcPowerOn 1s infinite; }
+        .fan-spin { animation: fanSpin 1s linear infinite; }
+        
+        .draggable {
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+        
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        
+        .drop-zone {
+            border: 3px dashed #ccc;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .pc-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+        }
+        
+        .component-slot {
+            border: 2px dashed #94a3b8;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .component-slot.occupied {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+        
+        .component-slot.drag-over {
+            border-color: #3b82f6;
+            background-color: #dbeafe;
+            transform: scale(1.05);
+        }
+        
+        .component-active {
+            animation: glow 2s infinite;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f59e0b;
+            animation: confetti-fall 3s linear infinite;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen font-sans">
+    <!-- Home Page -->
+    <div id="homePage" class="min-h-screen flex flex-col items-center justify-center p-8">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-2 bounce">🖥️ Simulasi Von Neumann</h1>
+            <h2 class="text-4xl font-semibold text-yellow-300 mb-8">& PC Builder</h2>
+            <p class="text-xl text-white mb-12 max-w-4xl">Pelajari arsitektur komputer dan rakit PC impianmu dengan cara yang menyenangkan! Kuasai 4 blok utama Von Neumann sambil membangun komputer sendiri.</p>
+        </div>
+        
+        <!-- Computer Illustration -->
+        <div class="bg-white rounded-3xl p-8 mb-12 shadow-2xl max-w-6xl w-full">
+            <div class="text-center mb-8">
+                <div class="text-8xl mb-4">🖥️⚡</div>
+                <h3 class="text-2xl font-bold text-gray-700 mb-6">Arsitektur Von Neumann & Perakitan PC</h3>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">📥</div>
+                    <h4 class="font-bold text-blue-600 text-lg">INPUT</h4>
+                    <p class="text-sm text-gray-600 mt-2">Keyboard, Mouse</p>
+                </div>
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">⚙️</div>
+                    <h4 class="font-bold text-green-600 text-lg">PROSES</h4>
+                    <p class="text-sm text-gray-600 mt-2">CPU, GPU</p>
+                </div>
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-yellow-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">💾</div>
+                    <h4 class="font-bold text-yellow-600 text-lg">MEMORI</h4>
+                    <p class="text-sm text-gray-600 mt-2">RAM, Storage</p>
+                </div>
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">📤</div>
+                    <h4 class="font-bold text-red-600 text-lg">OUTPUT</h4>
+                    <p class="text-sm text-gray-600 mt-2">Monitor, Speaker</p>
+                </div>
+            </div>
+            
+            <!-- PC Components Preview -->
+            <div class="bg-gray-50 rounded-2xl p-6">
+                <h4 class="text-lg font-bold text-center mb-4 text-gray-700">🔧 Komponen PC yang Akan Dirakit</h4>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
+                    <div class="pulse">
+                        <div class="text-3xl mb-2">🔲</div>
+                        <span class="text-xs font-bold">Motherboard</span>
+                    </div>
+                    <div class="pulse">
+                        <div class="text-3xl mb-2">🧠</div>
+                        <span class="text-xs font-bold">CPU</span>
+                    </div>
+                    <div class="pulse">
+                        <div class="text-3xl mb-2">💿</div>
+                        <span class="text-xs font-bold">RAM</span>
+                    </div>
+                    <div class="pulse">
+                        <div class="text-3xl mb-2">🎮</div>
+                        <span class="text-xs font-bold">GPU</span>
+                    </div>
+                    <div class="pulse">
+                        <div class="text-3xl mb-2">💽</div>
+                        <span class="text-xs font-bold">Storage</span>
+                    </div>
+                    <div class="pulse">
+                        <div class="text-3xl mb-2">🔌</div>
+                        <span class="text-xs font-bold">PSU</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="flex flex-wrap gap-6 justify-center">
+            <button onclick="showInstructions()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                📖 Petunjuk
+            </button>
+            <button onclick="startVonNeumannGame()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                🎮 Game Von Neumann
+            </button>
+            <button onclick="startPCBuilder()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                🔧 PC Builder
+            </button>
+            <button onclick="showQuiz()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                🧠 Quiz
+            </button>
+        </div>
+        
+        <!-- Sound Control -->
+        <button id="soundToggle" onclick="toggleSound()" class="fixed top-4 right-4 bg-white bg-opacity-20 text-white p-3 rounded-full hover:bg-opacity-30 transition-all">
+            🔊
+        </button>
+    </div>
+
+    <!-- Instructions Page -->
+    <div id="instructionsPage" class="min-h-screen flex flex-col items-center justify-center p-8 hidden">
+        <div class="bg-white rounded-3xl p-12 max-w-6xl shadow-2xl slide-in">
+            <h2 class="text-4xl font-bold text-center mb-8 text-purple-600">📚 Petunjuk Permainan</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-blue-600">🎯 Game Von Neumann:</h3>
+                    <ul class="text-lg text-gray-700 space-y-3">
+                        <li>• <strong>Level 1:</strong> Drag & Drop urutan blok</li>
+                        <li>• <strong>Level 2:</strong> Cocokkan perangkat dengan blok</li>
+                        <li>• <strong>Level 3:</strong> Simulasi alur data robot</li>
+                        <li>• Selesaikan semua level untuk menang!</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-green-600">🔧 PC Builder:</h3>
+                    <ul class="text-lg text-gray-700 space-y-3">
+                        <li>• Seret komponen ke slot yang tepat</li>
+                        <li>• Pasang CPU, RAM, GPU, dan lainnya</li>
+                        <li>• Sambungkan kabel dengan benar</li>
+                        <li>• Nyalakan PC dan lihat hasilnya!</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-2xl mb-8">
+                <h3 class="text-xl font-bold mb-4 text-center">🔄 Cara Bermain</h3>
+                <div class="flex justify-center items-center space-x-6">
+                    <div class="text-center">
+                        <div class="text-4xl mb-2 hand-point">👆</div>
+                        <span class="font-bold text-blue-600">KLIK</span>
+                    </div>
+                    <div class="text-2xl">→</div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-2">🖱️</div>
+                        <span class="font-bold text-green-600">SERET</span>
+                    </div>
+                    <div class="text-2xl">→</div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-2">🎯</div>
+                        <span class="font-bold text-yellow-600">LETAKKAN</span>
+                    </div>
+                    <div class="text-2xl">→</div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-2">🎉</div>
+                        <span class="font-bold text-red-600">SELESAI</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button onclick="showHome()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-8 rounded-full text-lg mr-4">
+                    ← Kembali
+                </button>
+                <button onclick="startVonNeumannGame()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg mr-4">
+                    🎮 Von Neumann
+                </button>
+                <button onclick="startPCBuilder()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg">
+                    🔧 PC Builder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Von Neumann Game Page -->
+    <div id="vonNeumannPage" class="min-h-screen p-8 hidden">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <button onclick="showHome()" class="bg-white bg-opacity-20 text-white font-bold py-2 px-6 rounded-full hover:bg-opacity-30">
+                ← Home
+            </button>
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-white">🎮 Game Von Neumann</h2>
+                <div id="vnGameStatus" class="text-xl text-yellow-300 mt-2">Level 1: Drag & Drop Urutan</div>
+            </div>
+            <div class="text-right">
+                <div class="text-white text-lg">Level: <span id="vnCurrentLevel" class="font-bold">1</span>/3</div>
+                <div class="text-white text-lg">Skor: <span id="vnGameScore" class="font-bold">0</span></div>
+            </div>
+        </div>
+
+        <!-- Level 1: Drag and Drop -->
+        <div id="vnLevel1" class="bg-white rounded-3xl p-8 shadow-2xl fade-in">
+            <h3 class="text-2xl font-bold text-center mb-8 text-purple-600">🎯 Level 1: Susun Urutan Von Neumann</h3>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Draggable Blocks -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Blok Tersedia:</h4>
+                    <div id="vnDraggableBlocks" class="space-y-4">
+                        <div class="draggable bg-blue-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="input">
+                            <span class="text-2xl mr-3">📥</span>
+                            <div>
+                                <div class="font-bold">INPUT</div>
+                                <div class="text-sm">Data Masuk</div>
+                            </div>
+                        </div>
+                        <div class="draggable bg-green-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="process">
+                            <span class="text-2xl mr-3">⚙️</span>
+                            <div>
+                                <div class="font-bold">PROSES</div>
+                                <div class="text-sm">Pengolahan</div>
+                            </div>
+                        </div>
+                        <div class="draggable bg-yellow-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="memory">
+                            <span class="text-2xl mr-3">💾</span>
+                            <div>
+                                <div class="font-bold">MEMORI</div>
+                                <div class="text-sm">Penyimpanan</div>
+                            </div>
+                        </div>
+                        <div class="draggable bg-red-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="output">
+                            <span class="text-2xl mr-3">📤</span>
+                            <div>
+                                <div class="font-bold">OUTPUT</div>
+                                <div class="text-sm">Hasil Keluar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Drop Zones -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Susun Urutan:</h4>
+                    <div class="space-y-4">
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="0">
+                            <span>1. Letakkan blok pertama di sini</span>
+                        </div>
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="1">
+                            <span>2. Letakkan blok kedua di sini</span>
+                        </div>
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="2">
+                            <span>3. Letakkan blok ketiga di sini</span>
+                        </div>
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="3">
+                            <span>4. Letakkan blok keempat di sini</span>
+                        </div>
+                    </div>
+                    
+                    <button id="checkVNLevel1" onclick="checkVNLevel1()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl mt-6 disabled:opacity-50" disabled>
+                        ✅ Periksa Urutan
+                    </button>
+                </div>
+            </div>
+            
+            <div id="vnDataFlowAnimation" class="mt-8 hidden">
+                <div class="relative h-20 bg-gray-100 rounded-xl overflow-hidden">
+                    <div id="vnDataOrb" class="absolute top-1/2 left-0 transform -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">💫</div>
+                </div>
+                <p class="text-center mt-4 text-green-600 font-bold">🎉 Data berhasil mengalir melalui arsitektur Von Neumann!</p>
+            </div>
+        </div>
+
+        <!-- Level 2: Device Matching -->
+        <div id="vnLevel2" class="bg-white rounded-3xl p-8 shadow-2xl hidden">
+            <h3 class="text-2xl font-bold text-center mb-8 text-purple-600">🔌 Level 2: Cocokkan Perangkat</h3>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Perangkat Komputer:</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="vnKeyboard" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="keyboard">
+                            <div class="text-4xl mb-2">⌨️</div>
+                            <div class="font-bold">Keyboard</div>
+                        </div>
+                        <div id="vnCpu" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="cpu">
+                            <div class="text-4xl mb-2">🧠</div>
+                            <div class="font-bold">CPU</div>
+                        </div>
+                        <div id="vnRam" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="ram">
+                            <div class="text-4xl mb-2">💿</div>
+                            <div class="font-bold">RAM</div>
+                        </div>
+                        <div id="vnMonitor" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="monitor">
+                            <div class="text-4xl mb-2">🖥️</div>
+                            <div class="font-bold">Monitor</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Blok Von Neumann:</h4>
+                    <div class="space-y-4">
+                        <div class="block-target bg-blue-100 p-4 rounded-xl border-2 border-blue-300" data-block="input">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">📥</span>
+                                <div>
+                                    <div class="font-bold text-blue-600">INPUT</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block-target bg-green-100 p-4 rounded-xl border-2 border-green-300" data-block="process">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">⚙️</span>
+                                <div>
+                                    <div class="font-bold text-green-600">PROSES</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block-target bg-yellow-100 p-4 rounded-xl border-2 border-yellow-300" data-block="memory">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">💾</span>
+                                <div>
+                                    <div class="font-bold text-yellow-600">MEMORI</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block-target bg-red-100 p-4 rounded-xl border-2 border-red-300" data-block="output">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">📤</span>
+                                <div>
+                                    <div class="font-bold text-red-600">OUTPUT</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 3: Data Flow Simulation -->
+        <div id="vnLevel3" class="bg-white rounded-3xl p-8 shadow-2xl hidden">
+            <h3 class="text-2xl font-bold text-center mb-8 text-purple-600">🤖 Level 3: Simulasi Alur Data</h3>
+            
+            <div class="relative">
+                <!-- Robot Path -->
+                <div class="flex justify-between items-center mb-8">
+                    <div id="vnRobot" class="text-6xl robot-walk">🤖</div>
+                    <div class="flex-1 mx-8">
+                        <div class="flex justify-between items-center">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">📥</div>
+                                <span class="text-sm font-bold text-blue-600">INPUT</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">⚙️</div>
+                                <span class="text-sm font-bold text-green-600">PROSES</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">💾</div>
+                                <span class="text-sm font-bold text-yellow-600">MEMORI</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">📤</div>
+                                <span class="text-sm font-bold text-red-600">OUTPUT</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-6xl">🏆</div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="text-center">
+                    <p class="text-lg mb-6 text-gray-700">Arahkan robot ke jalur yang benar:</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="moveVNRobot('input')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl">
+                            📥 INPUT
+                        </button>
+                        <button onclick="moveVNRobot('process')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl">
+                            ⚙️ PROSES
+                        </button>
+                        <button onclick="moveVNRobot('memory')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-xl">
+                            💾 MEMORI
+                        </button>
+                        <button onclick="moveVNRobot('output')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl">
+                            📤 OUTPUT
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Error Room -->
+                <div id="vnErrorRoom" class="mt-8 bg-red-100 border-2 border-red-300 rounded-xl p-6 text-center hidden">
+                    <div class="text-4xl mb-4">⚠️</div>
+                    <h4 class="text-xl font-bold text-red-600 mb-2">CPU Error Room!</h4>
+                    <p class="text-gray-700 mb-4">Robot masuk ke jalur yang salah. Coba lagi!</p>
+                    <button onclick="resetVNRobot()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full">
+                        🔄 Kembali ke Awal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="text-center mt-8">
+            <button id="vnNextLevelBtn" onclick="nextVNLevel()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hidden">
+                ➡️ Level Selanjutnya
+            </button>
+            <button id="vnResetGameBtn" onclick="resetVNGame()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full ml-4">
+                🔄 Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- PC Builder Page -->
+    <div id="pcBuilderPage" class="min-h-screen pc-gradient p-8 hidden">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <button onclick="showHome()" class="bg-white bg-opacity-20 text-white font-bold py-2 px-6 rounded-full hover:bg-opacity-30">
+                ← Home
+            </button>
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-white">🔧 PC Builder Simulator</h2>
+                <div id="pcStatus" class="text-xl text-yellow-300 mt-2">Rakit komputer impianmu!</div>
+            </div>
+            <div class="text-right">
+                <div class="text-white text-lg">Komponen: <span id="pcProgress" class="font-bold">0</span>/9</div>
+                <div class="text-white text-lg">Skor: <span id="pcScore" class="font-bold">0</span></div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Components Panel -->
+            <div class="bg-white rounded-3xl p-6 shadow-2xl">
+                <h3 class="text-xl font-bold text-center mb-6 text-purple-600">🧰 Komponen PC</h3>
+                <div id="pcComponents" class="space-y-4">
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="motherboard">
+                        <span class="text-2xl mr-3">🔲</span>
+                        <div>
+                            <div class="font-bold">Motherboard</div>
+                            <div class="text-sm text-gray-600">Papan induk</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="cpu">
+                        <span class="text-2xl mr-3">🧠</span>
+                        <div>
+                            <div class="font-bold">CPU</div>
+                            <div class="text-sm text-gray-600">Prosesor</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="ram">
+                        <span class="text-2xl mr-3">💿</span>
+                        <div>
+                            <div class="font-bold">RAM</div>
+                            <div class="text-sm text-gray-600">Memori</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="gpu">
+                        <span class="text-2xl mr-3">🎮</span>
+                        <div>
+                            <div class="font-bold">GPU</div>
+                            <div class="text-sm text-gray-600">Kartu grafis</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="storage">
+                        <span class="text-2xl mr-3">💽</span>
+                        <div>
+                            <div class="font-bold">Storage</div>
+                            <div class="text-sm text-gray-600">SSD/HDD</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="psu">
+                        <span class="text-2xl mr-3">🔌</span>
+                        <div>
+                            <div class="font-bold">PSU</div>
+                            <div class="text-sm text-gray-600">Power Supply</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="monitor">
+                        <span class="text-2xl mr-3">🖥️</span>
+                        <div>
+                            <div class="font-bold">Monitor</div>
+                            <div class="text-sm text-gray-600">Layar</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="keyboard">
+                        <span class="text-2xl mr-3">⌨️</span>
+                        <div>
+                            <div class="font-bold">Keyboard</div>
+                            <div class="text-sm text-gray-600">Papan ketik</div>
+                        </div>
+                    </div>
+                    <div class="draggable bg-gray-100 p-3 rounded-xl cursor-grab flex items-center" draggable="true" data-component="mouse">
+                        <span class="text-2xl mr-3">🖱️</span>
+                        <div>
+                            <div class="font-bold">Mouse</div>
+                            <div class="text-sm text-gray-600">Tetikus</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PC Assembly Area -->
+            <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-2xl">
+                <h3 class="text-xl font-bold text-center mb-6 text-purple-600">🖥️ Meja Perakitan</h3>
+                
+                <!-- PC Case -->
+                <div class="bg-gray-900 rounded-2xl p-6 mb-6 relative min-h-96">
+                    <h4 class="text-white text-center mb-4 font-bold">💻 Casing PC</h4>
+                    
+                    <!-- Internal Components -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="component-slot p-4 text-center" data-slot="motherboard">
+                            <div class="text-gray-400 text-sm">Motherboard Slot</div>
+                            <div class="text-2xl mt-2">🔲</div>
+                        </div>
+                        <div class="component-slot p-4 text-center" data-slot="psu">
+                            <div class="text-gray-400 text-sm">PSU Slot</div>
+                            <div class="text-2xl mt-2">🔌</div>
+                        </div>
+                        <div class="component-slot p-3 text-center" data-slot="cpu">
+                            <div class="text-gray-400 text-sm">CPU Socket</div>
+                            <div class="text-xl mt-1">🧠</div>
+                        </div>
+                        <div class="component-slot p-3 text-center" data-slot="gpu">
+                            <div class="text-gray-400 text-sm">GPU Slot</div>
+                            <div class="text-xl mt-1">🎮</div>
+                        </div>
+                        <div class="component-slot p-3 text-center" data-slot="ram">
+                            <div class="text-gray-400 text-sm">RAM Slot</div>
+                            <div class="text-xl mt-1">💿</div>
+                        </div>
+                        <div class="component-slot p-3 text-center" data-slot="storage">
+                            <div class="text-gray-400 text-sm">Storage Bay</div>
+                            <div class="text-xl mt-1">💽</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Power LED -->
+                    <div id="powerLED" class="absolute top-4 right-4 w-4 h-4 bg-gray-600 rounded-full"></div>
+                </div>
+                
+                <!-- External Peripherals -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="component-slot p-4 text-center" data-slot="monitor">
+                        <div class="text-gray-600 text-sm">Monitor</div>
+                        <div class="text-3xl mt-2">🖥️</div>
+                    </div>
+                    <div class="component-slot p-4 text-center" data-slot="keyboard">
+                        <div class="text-gray-600 text-sm">Keyboard</div>
+                        <div class="text-3xl mt-2">⌨️</div>
+                    </div>
+                    <div class="component-slot p-4 text-center" data-slot="mouse">
+                        <div class="text-gray-600 text-sm">Mouse</div>
+                        <div class="text-3xl mt-2">🖱️</div>
+                    </div>
+                </div>
+                
+                <!-- Power Button -->
+                <div class="text-center mt-6">
+                    <button id="powerButton" onclick="powerOnPC()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-xl disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        ⚡ Nyalakan PC
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PC Status Display -->
+        <div id="pcStatusDisplay" class="mt-8 bg-white rounded-3xl p-6 shadow-2xl text-center hidden">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="text-2xl font-bold text-green-600 mb-4">Komputer Berhasil Dirakit!</h3>
+            <p class="text-lg text-gray-700 mb-6">Data siap diproses dengan arsitektur Von Neumann 🚀</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-blue-100 p-4 rounded-xl">
+                    <div class="text-2xl mb-2">📥</div>
+                    <div class="font-bold text-blue-600">INPUT</div>
+                    <div class="text-sm">Keyboard, Mouse</div>
+                </div>
+                <div class="bg-green-100 p-4 rounded-xl">
+                    <div class="text-2xl mb-2">⚙️</div>
+                    <div class="font-bold text-green-600">PROSES</div>
+                    <div class="text-sm">CPU, GPU</div>
+                </div>
+                <div class="bg-yellow-100 p-4 rounded-xl">
+                    <div class="text-2xl mb-2">💾</div>
+                    <div class="font-bold text-yellow-600">MEMORI</div>
+                    <div class="text-sm">RAM, Storage</div>
+                </div>
+                <div class="bg-red-100 p-4 rounded-xl">
+                    <div class="text-2xl mb-2">📤</div>
+                    <div class="font-bold text-red-600">OUTPUT</div>
+                    <div class="text-sm">Monitor</div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 justify-center">
+                <button onclick="resetPCBuilder()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full">
+                    🔄 Rakit Lagi
+                </button>
+                <button onclick="showQuiz()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-full">
+                    🧠 Quiz
+                </button>
+                <button onclick="showHome()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full">
+                    🏠 Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Page -->
+    <div id="quizPage" class="min-h-screen p-8 hidden">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-white mb-4">🧠 Quiz Von Neumann & PC</h2>
+                <div class="text-xl text-yellow-300">Pertanyaan <span id="questionNumber">1</span> dari 7</div>
+            </div>
+            
+            <div class="bg-white rounded-3xl p-8 shadow-2xl">
+                <div id="quizContent">
+                    <!-- Quiz questions will be inserted here -->
+                </div>
+                
+                <div class="flex justify-between mt-8">
+                    <button onclick="showHome()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full">
+                        ← Kembali
+                    </button>
+                    <div class="text-right">
+                        <div class="text-lg">Skor: <span id="quizScore" class="font-bold">0</span>/7</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="victoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-3xl p-12 text-center max-w-md shadow-2xl celebration">
+            <div class="text-6xl mb-6">🎉</div>
+            <h3 class="text-3xl font-bold text-green-600 mb-4">Keren!</h3>
+            <p id="victoryMessage" class="text-lg text-gray-700 mb-6">Kamu berhasil menyelesaikan semua tantangan! 🚀</p>
+            
+            <div class="flex gap-4 justify-center">
+                <button onclick="resetVNGame()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full">
+                    🎮 Von Neumann
+                </button>
+                <button onclick="resetPCBuilder()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full">
+                    🔧 PC Builder
+                </button>
+                <button onclick="showHome()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-full">
+                    🏠 Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let vnCurrentLevel = 1;
+        let vnGameScore = 0;
+        let soundEnabled = true;
+        let vnRobotPosition = 0;
+        let vnRobotStep = 0;
+        let quizCurrentQuestion = 0;
+        let quizScore = 0;
+        let pcProgress = 0;
+        let pcScore = 0;
+        let pcComponents = {};
+        
+        const correctSequence = ['input', 'process', 'memory', 'output'];
+        const deviceMapping = {
+            'input': 'keyboard',
+            'process': 'cpu', 
+            'memory': 'ram',
+            'output': 'monitor'
+        };
+        
+        const quizQuestions = [
+            {
+                question: "Apa fungsi utama blok INPUT dalam arsitektur Von Neumann?",
+                options: ["Memproses data", "Menerima data dari luar", "Menyimpan data", "Menampilkan hasil"],
+                correct: 1
+            },
+            {
+                question: "Perangkat mana yang termasuk dalam blok PROSES?",
+                options: ["Monitor", "Keyboard", "CPU", "Printer"],
+                correct: 2
+            },
+            {
+                question: "Fungsi utama MEMORI dalam komputer adalah?",
+                options: ["Menampilkan data", "Menyimpan data sementara", "Memproses data", "Menerima input"],
+                correct: 1
+            },
+            {
+                question: "Contoh perangkat OUTPUT adalah?",
+                options: ["Mouse", "RAM", "Monitor", "CPU"],
+                correct: 2
+            },
+            {
+                question: "Komponen mana yang harus dipasang pertama kali saat merakit PC?",
+                options: ["CPU", "Motherboard", "RAM", "GPU"],
+                correct: 1
+            },
+            {
+                question: "Apa fungsi PSU (Power Supply Unit)?",
+                options: ["Memproses data", "Menyimpan data", "Menyediakan listrik", "Menampilkan gambar"],
+                correct: 2
+            },
+            {
+                question: "Urutan yang benar dalam arsitektur Von Neumann adalah?",
+                options: ["Output → Input → Proses → Memori", "Input → Proses → Memori → Output", "Memori → Proses → Input → Output", "Proses → Input → Output → Memori"],
+                correct: 1
+            }
+        ];
+        
+        // Sound Effects
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'success':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+                    break;
+                case 'error':
+                    oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(196, audioContext.currentTime + 0.1);
+                    break;
+                case 'victory':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.2);
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.4);
+                    break;
+                case 'click':
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    break;
+                case 'component':
+                    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(554.37, audioContext.currentTime + 0.1);
+                    break;
+                case 'power':
+                    oscillator.frequency.setValueAtTime(330, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(440, audioContext.currentTime + 0.2);
+                    oscillator.frequency.setValueAtTime(554.37, audioContext.currentTime + 0.4);
+                    break;
+            }
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        // Navigation Functions
+        function showHome() {
+            hideAllPages();
+            document.getElementById('homePage').classList.remove('hidden');
+        }
+        
+        function showInstructions() {
+            hideAllPages();
+            document.getElementById('instructionsPage').classList.remove('hidden');
+        }
+        
+        function startVonNeumannGame() {
+            hideAllPages();
+            document.getElementById('vonNeumannPage').classList.remove('hidden');
+            resetVNGame();
+        }
+        
+        function startPCBuilder() {
+            hideAllPages();
+            document.getElementById('pcBuilderPage').classList.remove('hidden');
+            resetPCBuilder();
+        }
+        
+        function showQuiz() {
+            hideAllPages();
+            document.getElementById('quizPage').classList.remove('hidden');
+            startQuiz();
+        }
+        
+        function hideAllPages() {
+            document.getElementById('homePage').classList.add('hidden');
+            document.getElementById('instructionsPage').classList.add('hidden');
+            document.getElementById('vonNeumannPage').classList.add('hidden');
+            document.getElementById('pcBuilderPage').classList.add('hidden');
+            document.getElementById('quizPage').classList.add('hidden');
+            document.getElementById('victoryModal').classList.add('hidden');
+        }
+        
+        // Von Neumann Game Functions
+        function resetVNGame() {
+            vnCurrentLevel = 1;
+            vnGameScore = 0;
+            vnRobotPosition = 0;
+            vnRobotStep = 0;
+            
+            document.getElementById('vnCurrentLevel').textContent = vnCurrentLevel;
+            document.getElementById('vnGameScore').textContent = vnGameScore;
+            document.getElementById('vnGameStatus').textContent = 'Level 1: Drag & Drop Urutan';
+            
+            showVNLevel(1);
+            resetVNLevel1();
+            resetVNLevel2();
+            resetVNLevel3();
+        }
+        
+        function showVNLevel(level) {
+            document.getElementById('vnLevel1').classList.add('hidden');
+            document.getElementById('vnLevel2').classList.add('hidden');
+            document.getElementById('vnLevel3').classList.add('hidden');
+            document.getElementById('vnNextLevelBtn').classList.add('hidden');
+            
+            document.getElementById(`vnLevel${level}`).classList.remove('hidden');
+            
+            const statusTexts = {
+                1: 'Level 1: Drag & Drop Urutan',
+                2: 'Level 2: Cocokkan Perangkat', 
+                3: 'Level 3: Simulasi Alur Data'
+            };
+            
+            document.getElementById('vnGameStatus').textContent = statusTexts[level];
+        }
+        
+        function nextVNLevel() {
+            playSound('click');
+            vnCurrentLevel++;
+            document.getElementById('vnCurrentLevel').textContent = vnCurrentLevel;
+            
+            if (vnCurrentLevel <= 3) {
+                showVNLevel(vnCurrentLevel);
+            } else {
+                showVictory();
+            }
+        }
+        
+        // Von Neumann Level 1: Drag and Drop
+        let vnDraggedElement = null;
+        let vnDropSequence = [];
+        
+        function initializeVNDragAndDrop() {
+            const draggables = document.querySelectorAll('#vnDraggableBlocks .draggable');
+            const dropZones = document.querySelectorAll('#vonNeumannPage .drop-zone');
+            
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    vnDraggedElement = e.target;
+                    e.target.style.opacity = '0.5';
+                });
+                
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '1';
+                });
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    
+                    if (vnDraggedElement) {
+                        const position = parseInt(zone.dataset.position);
+                        const blockType = vnDraggedElement.dataset.block;
+                        
+                        zone.innerHTML = vnDraggedElement.outerHTML;
+                        zone.querySelector('.draggable').draggable = false;
+                        zone.querySelector('.draggable').classList.remove('draggable');
+                        
+                        vnDropSequence[position] = blockType;
+                        
+                        // Check if all positions are filled
+                        if (vnDropSequence.filter(item => item).length === 4) {
+                            document.getElementById('checkVNLevel1').disabled = false;
+                        }
+                    }
+                });
+            });
+        }
+        
+        function resetVNLevel1() {
+            vnDropSequence = [];
+            const dropZones = document.querySelectorAll('#vonNeumannPage .drop-zone');
+            dropZones.forEach((zone, index) => {
+                zone.innerHTML = `<span>${index + 1}. Letakkan blok ${['pertama', 'kedua', 'ketiga', 'keempat'][index]} di sini</span>`;
+            });
+            document.getElementById('checkVNLevel1').disabled = true;
+            document.getElementById('vnDataFlowAnimation').classList.add('hidden');
+        }
+        
+        function checkVNLevel1() {
+            playSound('click');
+            const isCorrect = JSON.stringify(vnDropSequence) === JSON.stringify(correctSequence);
+            
+            if (isCorrect) {
+                playSound('success');
+                vnGameScore += 100;
+                document.getElementById('vnGameScore').textContent = vnGameScore;
+                
+                // Show data flow animation
+                document.getElementById('vnDataFlowAnimation').classList.remove('hidden');
+                document.getElementById('vnDataOrb').classList.add('data-flow');
+                
+                setTimeout(() => {
+                    document.getElementById('vnNextLevelBtn').classList.remove('hidden');
+                }, 3000);
+                
+            } else {
+                playSound('error');
+                alert('Urutan belum benar! Coba lagi. Ingat: Input → Proses → Memori → Output');
+                resetVNLevel1();
+            }
+        }
+        
+        // Von Neumann Level 2: Device Matching
+        let vnSelectedDevice = null;
+        let vnMatchedDevices = 0;
+        
+        function initializeVNDeviceMatching() {
+            const devices = document.querySelectorAll('#vonNeumannPage .device');
+            const blockTargets = document.querySelectorAll('#vonNeumannPage .block-target');
+            
+            devices.forEach(device => {
+                device.addEventListener('click', () => {
+                    playSound('click');
+                    
+                    // Remove previous selection
+                    devices.forEach(d => d.classList.remove('ring-4', 'ring-blue-500'));
+                    
+                    // Select current device
+                    device.classList.add('ring-4', 'ring-blue-500');
+                    vnSelectedDevice = device.dataset.device;
+                });
+            });
+            
+            blockTargets.forEach(target => {
+                target.addEventListener('click', () => {
+                    if (!vnSelectedDevice) {
+                        alert('Pilih perangkat terlebih dahulu!');
+                        return;
+                    }
+                    
+                    const blockType = target.dataset.block;
+                    const correctDevice = deviceMapping[blockType];
+                    
+                    if (vnSelectedDevice === correctDevice) {
+                        playSound('success');
+                        target.classList.add('bg-green-200', 'border-green-500');
+                        target.querySelector('.text-sm').textContent = '✅ Benar!';
+                        
+                        // Animate device
+                        const deviceElement = document.querySelector(`#vonNeumannPage [data-device="${vnSelectedDevice}"]`);
+                        deviceElement.classList.add('glow');
+                        
+                        vnMatchedDevices++;
+                        vnGameScore += 50;
+                        document.getElementById('vnGameScore').textContent = vnGameScore;
+                        
+                        if (vnMatchedDevices === 4) {
+                            setTimeout(() => {
+                                document.getElementById('vnNextLevelBtn').classList.remove('hidden');
+                            }, 1000);
+                        }
+                        
+                    } else {
+                        playSound('error');
+                        target.classList.add('error-blink');
+                        setTimeout(() => {
+                            target.classList.remove('error-blink');
+                        }, 1000);
+                    }
+                    
+                    // Reset selection
+                    document.querySelectorAll('#vonNeumannPage .device').forEach(d => d.classList.remove('ring-4', 'ring-blue-500'));
+                    vnSelectedDevice = null;
+                });
+            });
+        }
+        
+        function resetVNLevel2() {
+            vnMatchedDevices = 0;
+            vnSelectedDevice = null;
+            
+            document.querySelectorAll('#vonNeumannPage .device').forEach(device => {
+                device.classList.remove('ring-4', 'ring-blue-500', 'glow');
+            });
+            
+            document.querySelectorAll('#vonNeumannPage .block-target').forEach(target => {
+                target.classList.remove('bg-green-200', 'border-green-500', 'error-blink');
+                target.querySelector('.text-sm').textContent = 'Klik perangkat yang sesuai';
+            });
+        }
+        
+        // Von Neumann Level 3: Robot Simulation
+        function moveVNRobot(direction) {
+            playSound('click');
+            
+            const expectedStep = correctSequence[vnRobotStep];
+            
+            if (direction === expectedStep) {
+                playSound('success');
+                vnRobotStep++;
+                vnRobotPosition += 200;
+                
+                document.getElementById('vnRobot').style.transform = `translateX(${vnRobotPosition}px)`;
+                vnGameScore += 75;
+                document.getElementById('vnGameScore').textContent = vnGameScore;
+                
+                if (vnRobotStep === 4) {
+                    // Victory!
+                    setTimeout(() => {
+                        createConfetti();
+                        showVictory();
+                    }, 1000);
+                }
+                
+            } else {
+                playSound('error');
+                document.getElementById('vnErrorRoom').classList.remove('hidden');
+            }
+        }
+        
+        function resetVNRobot() {
+            playSound('click');
+            vnRobotStep = 0;
+            vnRobotPosition = 0;
+            document.getElementById('vnRobot').style.transform = 'translateX(0px)';
+            document.getElementById('vnErrorRoom').classList.add('hidden');
+        }
+        
+        function resetVNLevel3() {
+            resetVNRobot();
+        }
+        
+        // PC Builder Functions
+        function resetPCBuilder() {
+            pcProgress = 0;
+            pcScore = 0;
+            pcComponents = {};
+            
+            document.getElementById('pcProgress').textContent = pcProgress;
+            document.getElementById('pcScore').textContent = pcScore;
+            document.getElementById('pcStatus').textContent = 'Rakit komputer impianmu!';
+            document.getElementById('powerButton').disabled = true;
+            document.getElementById('powerLED').classList.remove('pc-power-on');
+            document.getElementById('pcStatusDisplay').classList.add('hidden');
+            
+            // Reset component slots
+            document.querySelectorAll('.component-slot').forEach(slot => {
+                slot.classList.remove('occupied', 'component-active');
+                slot.innerHTML = `
+                    <div class="text-gray-400 text-sm">${slot.dataset.slot.charAt(0).toUpperCase() + slot.dataset.slot.slice(1)} Slot</div>
+                    <div class="text-2xl mt-2">${getSlotIcon(slot.dataset.slot)}</div>
+                `;
+            });
+            
+            // Reset draggable components
+            document.querySelectorAll('#pcComponents .draggable').forEach(component => {
+                component.style.display = 'flex';
+                component.classList.remove('opacity-50');
+            });
+        }
+        
+        function getSlotIcon(slot) {
+            const icons = {
+                'motherboard': '🔲',
+                'cpu': '🧠',
+                'ram': '💿',
+                'gpu': '🎮',
+                'storage': '💽',
+                'psu': '🔌',
+                'monitor': '🖥️',
+                'keyboard': '⌨️',
+                'mouse': '🖱️'
+            };
+            return icons[slot] || '❓';
+        }
+        
+        function initializePCBuilder() {
+            const draggables = document.querySelectorAll('#pcComponents .draggable');
+            const slots = document.querySelectorAll('.component-slot');
+            
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.component);
+                    e.target.style.opacity = '0.5';
+                });
+                
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '1';
+                });
+            });
+            
+            slots.forEach(slot => {
+                slot.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    slot.classList.add('drag-over');
+                });
+                
+                slot.addEventListener('dragleave', () => {
+                    slot.classList.remove('drag-over');
+                });
+                
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('drag-over');
+                    
+                    const componentType = e.dataTransfer.getData('text/plain');
+                    const slotType = slot.dataset.slot;
+                    
+                    if (componentType === slotType && !slot.classList.contains('occupied')) {
+                        playSound('component');
+                        
+                        // Mark slot as occupied
+                        slot.classList.add('occupied', 'component-active');
+                        slot.innerHTML = `
+                            <div class="text-green-600 text-sm font-bold">✅ ${componentType.charAt(0).toUpperCase() + componentType.slice(1)}</div>
+                            <div class="text-3xl mt-2">${getSlotIcon(componentType)}</div>
+                        `;
+                        
+                        // Hide draggable component
+                        const draggedComponent = document.querySelector(`[data-component="${componentType}"]`);
+                        draggedComponent.style.display = 'none';
+                        
+                        // Update progress
+                        pcComponents[componentType] = true;
+                        pcProgress++;
+                        pcScore += 50;
+                        
+                        document.getElementById('pcProgress').textContent = pcProgress;
+                        document.getElementById('pcScore').textContent = pcScore;
+                        
+                        // Check if all components are installed
+                        if (pcProgress === 9) {
+                            document.getElementById('powerButton').disabled = false;
+                            document.getElementById('pcStatus').textContent = 'Semua komponen terpasang! Nyalakan PC!';
+                        }
+                        
+                    } else if (componentType !== slotType) {
+                        playSound('error');
+                        alert(`Komponen ${componentType} tidak cocok dengan slot ${slotType}! Coba lagi.`);
+                    } else {
+                        playSound('error');
+                        alert('Slot sudah terisi!');
+                    }
+                });
+            });
+        }
+        
+        function powerOnPC() {
+            if (pcProgress === 9) {
+                playSound('power');
+                
+                // Animate power LED
+                document.getElementById('powerLED').classList.add('pc-power-on');
+                
+                // Add fan spinning animation to components
+                document.querySelectorAll('.component-active').forEach(component => {
+                    component.classList.add('fan-spin');
+                });
+                
+                // Show success message
+                setTimeout(() => {
+                    document.getElementById('pcStatusDisplay').classList.remove('hidden');
+                    createConfetti();
+                }, 2000);
+                
+                pcScore += 200;
+                document.getElementById('pcScore').textContent = pcScore;
+            }
+        }
+        
+        // Quiz Functions
+        function startQuiz() {
+            quizCurrentQuestion = 0;
+            quizScore = 0;
+            document.getElementById('quizScore').textContent = quizScore;
+            showQuestion();
+        }
+        
+        function showQuestion() {
+            const question = quizQuestions[quizCurrentQuestion];
+            document.getElementById('questionNumber').textContent = quizCurrentQuestion + 1;
+            
+            const quizContent = document.getElementById('quizContent');
+            quizContent.innerHTML = `
+                <h3 class="text-xl font-bold mb-6">${question.question}</h3>
+                <div class="space-y-3">
+                    ${question.options.map((option, index) => `
+                        <button onclick="selectAnswer(${index})" class="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function selectAnswer(selectedIndex) {
+            playSound('click');
+            const question = quizQuestions[quizCurrentQuestion];
+            const buttons = document.querySelectorAll('#quizContent button');
+            
+            buttons.forEach((button, index) => {
+                if (index === question.correct) {
+                    button.classList.add('bg-green-200', 'border-green-500');
+                } else if (index === selectedIndex && index !== question.correct) {
+                    button.classList.add('bg-red-200', 'border-red-500');
+                }
+                button.disabled = true;
+            });
+            
+            if (selectedIndex === question.correct) {
+                playSound('success');
+                quizScore++;
+                document.getElementById('quizScore').textContent = quizScore;
+            } else {
+                playSound('error');
+            }
+            
+            setTimeout(() => {
+                quizCurrentQuestion++;
+                if (quizCurrentQuestion < quizQuestions.length) {
+                    showQuestion();
+                } else {
+                    showQuizResult();
+                }
+            }, 2000);
+        }
+        
+        function showQuizResult() {
+            let badge = '';
+            let message = '';
+            
+            if (quizScore <= 3) {
+                badge = '🌱 Pemula';
+                message = 'Terus belajar! Kamu pasti bisa lebih baik lagi.';
+            } else if (quizScore <= 5) {
+                badge = '⭐ Hebat';
+                message = 'Bagus sekali! Kamu sudah memahami konsep Von Neumann dan PC.';
+            } else {
+                badge = '🏆 Master Perakit PC';
+                message = 'Luar biasa! Kamu benar-benar menguasai arsitektur Von Neumann dan perakitan PC!';
+            }
+            
+            document.getElementById('quizContent').innerHTML = `
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-2xl font-bold mb-4">Quiz Selesai!</h3>
+                    <div class="text-4xl mb-4">${badge}</div>
+                    <p class="text-lg mb-6">${message}</p>
+                    <div class="text-xl font-bold">Skor Akhir: ${quizScore}/7</div>
+                    <button onclick="startQuiz()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full mt-6 mr-4">
+                        🔄 Coba Lagi
+                    </button>
+                    <button onclick="showHome()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full mt-6">
+                        🏠 Home
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Victory Functions
+        function showVictory() {
+            const messages = [
+                "Jangan menyerah, coba lagi! 💪",
+                "Keren! Kamu berhasil menyelesaikan semua tantangan! 🚀",
+                "Luar biasa! Kamu benar-benar menguasai Von Neumann dan PC Building! 🌟"
+            ];
+            
+            let messageIndex = 1;
+            if (vnGameScore < 200) messageIndex = 0;
+            else if (vnGameScore >= 300) messageIndex = 2;
+            
+            document.getElementById('victoryMessage').textContent = messages[messageIndex];
+            document.getElementById('victoryModal').classList.remove('hidden');
+            playSound('victory');
+        }
+        
+        function createConfetti() {
+            const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showHome();
+            initializeVNDragAndDrop();
+            initializeVNDeviceMatching();
+            initializePCBuilder();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9848b73533f6fd1c',t:'MTc1ODc4NDM3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
