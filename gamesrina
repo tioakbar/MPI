@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Molekul - Game Maze Interaktif</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #F0E68C 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: perspective(1000px) rotateX(5deg);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            color: #2E8B57;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            margin: 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transform: perspective(500px) rotateY(-5deg);
+            transition: all 0.3s ease;
+            border: 3px solid #4CAF50;
+        }
+
+        .info-card:hover {
+            transform: perspective(500px) rotateY(0deg) scale(1.05);
+        }
+
+        .maze-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            transform: perspective(1000px) rotateX(2deg);
+        }
+
+        .maze {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #228B22;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .wall {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            border: 2px solid #654321;
+        }
+
+        .path {
+            background: linear-gradient(45deg, #90EE90, #98FB98);
+            border: 2px solid #32CD32;
+        }
+
+        .path:hover {
+            background: linear-gradient(45deg, #7CFC00, #ADFF2F);
+            transform: scale(1.1) rotateZ(5deg);
+        }
+
+        .player {
+            background: radial-gradient(circle, #FF6B6B, #FF4757);
+            border: 3px solid #FF3742;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .molecule {
+            background: radial-gradient(circle, #4ECDC4, #45B7B8);
+            border: 3px solid #26D0CE;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .goal {
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border: 3px solid #FF8C00;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 10px #FFD700; }
+            to { box-shadow: 0 0 25px #FFD700, 0 0 35px #FFA500; }
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            transform: perspective(500px) rotateX(10deg);
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: perspective(500px) rotateX(0deg) translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .molecule-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: perspective(800px) rotateY(2deg);
+        }
+
+        .molecule-card {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transform: perspective(600px) rotateX(5deg);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .molecule-card:hover {
+            transform: perspective(600px) rotateX(0deg) scale(1.05);
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2E8B57;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .clouds {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+            animation: float 20s infinite linear;
+        }
+
+        .cloud:before {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+        }
+
+        .cloud1 {
+            width: 80px;
+            height: 40px;
+            top: 20%;
+            animation-duration: 25s;
+        }
+
+        .cloud1:before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+
+        .cloud2 {
+            width: 60px;
+            height: 30px;
+            top: 40%;
+            animation-duration: 30s;
+            animation-delay: -10s;
+        }
+
+        .cloud2:before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 15px;
+        }
+
+        @keyframes float {
+            from { transform: translateX(-100px); }
+            to { transform: translateX(calc(100vw + 100px)); }
+        }
+
+        @media (max-width: 768px) {
+            .maze {
+                grid-template-columns: repeat(6, 1fr);
+                max-width: 400px;
+            }
+            
+            .cell {
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clouds">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+    </div>
+
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🧪 Petualangan Molekul 🌿</h1>
+            <p>Bantu atom menemukan pasangannya untuk membentuk molekul!</p>
+        </div>
+
+        <div class="game-info">
+            <div class="info-card">
+                <strong>🎯 Target:</strong> <span id="target-molecule">H₂O</span>
+            </div>
+            <div class="info-card">
+                <strong>⭐ Skor:</strong> <span id="score">0</span>
+            </div>
+            <div class="info-card">
+                <strong>🏃 Langkah:</strong> <span id="steps">0</span>
+            </div>
+            <div class="info-card">
+                <strong>⏱ Level:</strong> <span id="level">1</span>
+            </div>
+        </div>
+
+        <div class="maze-container">
+            <div class="status" id="status">Kumpulkan atom untuk membentuk molekul H₂O!</div>
+            <div class="maze" id="maze"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="resetGame()">🔄 Reset Game</button>
+            <button class="btn" onclick="nextLevel()">➡ Level Berikutnya</button>
+            <button class="btn" onclick="showHint()">💡 Petunjuk</button>
+        </div>
+
+        <div class="molecule-info">
+            <h3 style="color: #2E8B57; text-align: center;">📚 Bentuk Molekul yang Dipelajari</h3>
+            <div style="text-align: center;">
+                <div class="molecule-card" onclick="learnMolecule('H2O')">
+                    <strong>H₂O - Air</strong><br>
+                    <small>Bentuk: Bengkok (Angular)</small>
+                </div>
+                <div class="molecule-card" onclick="learnMolecule('CO2')">
+                    <strong>CO₂ - Karbon Dioksida</strong><br>
+                    <small>Bentuk: Linear</small>
+                </div>
+                <div class="molecule-card" onclick="learnMolecule('NH3')">
+                    <strong>NH₃ - Amonia</strong><br>
+                    <small>Bentuk: Piramida Trigonal</small>
+                </div>
+                <div class="molecule-card" onclick="learnMolecule('CH4')">
+                    <strong>CH₄ - Metana</strong><br>
+                    <small>Bentuk: Tetrahedral</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            playerPos: {x: 0, y: 0},
+            targetMolecule: 'H2O',
+            collectedAtoms: [],
+            score: 0,
+            steps: 0,
+            level: 1,
+            molecules: []
+        };
+
+        const moleculeData = {
+            'H2O': {atoms: ['H', 'H', 'O'], shape: 'Bengkok (Angular)', description: 'Molekul air memiliki bentuk bengkok karena pasangan elektron bebas pada oksigen'},
+            'CO2': {atoms: ['C', 'O', 'O'], shape: 'Linear', description: 'Molekul CO₂ berbentuk linear dengan sudut 180°'},
+            'NH3': {atoms: ['N', 'H', 'H', 'H'], shape: 'Piramida Trigonal', description: 'Molekul amonia berbentuk piramida trigonal'},
+            'CH4': {atoms: ['C', 'H', 'H', 'H', 'H'], shape: 'Tetrahedral', description: 'Molekul metana berbentuk tetrahedral dengan sudut 109.5°'}
+        };
+
+        const mazeLayouts = [
+            // Level 1 - H2O
+            [
+                [1,1,1,1,1,1,1,1],
+                [1,2,0,1,0,0,0,1],
+                [1,0,0,1,0,1,3,1],
+                [1,0,1,1,0,1,0,1],
+                [1,0,0,0,0,1,0,1],
+                [1,1,1,0,1,1,3,1],
+                [1,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,4,1]
+            ],
+            // Level 2 - CO2
+            [
+                [1,1,1,1,1,1,1,1],
+                [1,2,0,0,1,0,3,1],
+                [1,1,1,0,1,0,1,1],
+                [1,0,0,0,0,0,0,1],
+                [1,0,1,1,1,1,0,1],
+                [1,0,0,3,0,0,0,1],
+                [1,1,0,1,1,0,1,1],
+                [1,1,1,1,1,1,4,1]
+            ]
+        ];
+
+        function initGame() {
+            createMaze();
+            updateDisplay();
+            placePlayer();
+        }
+
+        function createMaze() {
+            const maze = document.getElementById('maze');
+            maze.innerHTML = '';
+            
+            const layout = mazeLayouts[gameState.level - 1] || mazeLayouts[0];
+            gameState.molecules = [];
+            
+            layout.forEach((row, y) => {
+                row.forEach((cell, x) => {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'cell';
+                    cellDiv.dataset.x = x;
+                    cellDiv.dataset.y = y;
+                    
+                    switch(cell) {
+                        case 0: // Path
+                            cellDiv.classList.add('path');
+                            break;
+                        case 1: // Wall
+                            cellDiv.classList.add('wall');
+                            cellDiv.innerHTML = '🌳';
+                            break;
+                        case 2: // Start
+                            cellDiv.classList.add('path');
+                            gameState.playerPos = {x, y};
+                            break;
+                        case 3: // Molecule/Atom
+                            cellDiv.classList.add('path', 'molecule');
+                            const atoms = moleculeData[gameState.targetMolecule].atoms;
+                            const atomType = atoms[gameState.molecules.length % atoms.length];
+                            cellDiv.innerHTML = atomType;
+                            gameState.molecules.push({x, y, atom: atomType, collected: false});
+                            break;
+                        case 4: // Goal
+                            cellDiv.classList.add('path', 'goal');
+                            cellDiv.innerHTML = '🏆';
+                            break;
+                    }
+                    
+                    cellDiv.addEventListener('click', () => movePlayer(x, y));
+                    maze.appendChild(cellDiv);
+                });
+            });
+        }
+
+        function placePlayer() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => cell.classList.remove('player'));
+            
+            const playerCell = document.querySelector([data-x="${gameState.playerPos.x}"][data-y="${gameState.playerPos.y}"]);
+            if (playerCell) {
+                playerCell.classList.add('player');
+                playerCell.innerHTML = '🤖';
+            }
+        }
+
+        function movePlayer(targetX, targetY) {
+            const targetCell = document.querySelector([data-x="${targetX}"][data-y="${targetY}"]);
+            
+            if (!targetCell || targetCell.classList.contains('wall')) return;
+            
+            // Check if move is adjacent
+            const dx = Math.abs(targetX - gameState.playerPos.x);
+            const dy = Math.abs(targetY - gameState.playerPos.y);
+            
+            if (dx + dy !== 1) return;
+            
+            // Remove player from current position
+            const currentCell = document.querySelector([data-x="${gameState.playerPos.x}"][data-y="${gameState.playerPos.y}"]);
+            currentCell.classList.remove('player');
+            currentCell.innerHTML = '';
+            
+            // Update position
+            gameState.playerPos = {x: targetX, y: targetY};
+            gameState.steps++;
+            
+            // Check for molecule collection
+            const molecule = gameState.molecules.find(m => m.x === targetX && m.y === targetY && !m.collected);
+            if (molecule) {
+                molecule.collected = true;
+                gameState.collectedAtoms.push(molecule.atom);
+                gameState.score += 10;
+                targetCell.classList.remove('molecule');
+                
+                document.getElementById('status').innerHTML = Atom ${molecule.atom} dikumpulkan! 🎉;
+                setTimeout(() => {
+                    checkMoleculeComplete();
+                }, 1000);
+            }
+            
+            // Check for goal
+            if (targetCell.classList.contains('goal')) {
+                checkWin();
+            }
+            
+            placePlayer();
+            updateDisplay();
+        }
+
+        function checkMoleculeComplete() {
+            const requiredAtoms = moleculeData[gameState.targetMolecule].atoms;
+            const collected = [...gameState.collectedAtoms];
+            
+            let canForm = true;
+            for (let atom of requiredAtoms) {
+                const index = collected.indexOf(atom);
+                if (index === -1) {
+                    canForm = false;
+                    break;
+                }
+                collected.splice(index, 1);
+            }
+            
+            if (canForm) {
+                document.getElementById('status').innerHTML = Molekul ${gameState.targetMolecule} terbentuk! Menuju portal! ✨;
+                gameState.score += 50;
+                updateDisplay();
+            } else {
+                document.getElementById('status').innerHTML = Kumpulkan lebih banyak atom untuk ${gameState.targetMolecule};
+            }
+        }
+
+        function checkWin() {
+            const requiredAtoms = moleculeData[gameState.targetMolecule].atoms;
+            const collected = [...gameState.collectedAtoms];
+            
+            let canForm = true;
+            for (let atom of requiredAtoms) {
+                const index = collected.indexOf(atom);
+                if (index === -1) {
+                    canForm = false;
+                    break;
+                }
+                collected.splice(index, 1);
+            }
+            
+            if (canForm) {
+                gameState.score += 100;
+                document.getElementById('status').innerHTML = 🎉 Level ${gameState.level} Selesai! Molekul ${gameState.targetMolecule} berhasil dibentuk!;
+                setTimeout(() => {
+                    alert(Selamat! Anda berhasil membentuk molekul ${gameState.targetMolecule}!\n\nBentuk: ${moleculeData[gameState.targetMolecule].shape}\n${moleculeData[gameState.targetMolecule].description}\n\nSkor: ${gameState.score});
+                }, 500);
+            } else {
+                document.getElementById('status').innerHTML = Anda belum mengumpulkan semua atom yang diperlukan untuk ${gameState.targetMolecule}!;
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('target-molecule').textContent = gameState.targetMolecule;
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('steps').textContent = gameState.steps;
+            document.getElementById('level').textContent = gameState.level;
+        }
+
+        function resetGame() {
+            gameState.collectedAtoms = [];
+            gameState.steps = 0;
+            gameState.playerPos = {x: 0, y: 0};
+            document.getElementById('status').innerHTML = Kumpulkan atom untuk membentuk molekul ${gameState.targetMolecule}!;
+            initGame();
+        }
+
+        function nextLevel() {
+            const molecules = ['H2O', 'CO2', 'NH3', 'CH4'];
+            gameState.level = (gameState.level % 2) + 1;
+            gameState.targetMolecule = molecules[(gameState.level - 1) % molecules.length];
+            gameState.collectedAtoms = [];
+            gameState.steps = 0;
+            document.getElementById('status').innerHTML = Level ${gameState.level}: Bentuk molekul ${gameState.targetMolecule}!;
+            initGame();
+        }
+
+        function showHint() {
+            const requiredAtoms = moleculeData[gameState.targetMolecule].atoms;
+            const atomCounts = {};
+            requiredAtoms.forEach(atom => {
+                atomCounts[atom] = (atomCounts[atom] || 0) + 1;
+            });
+            
+            let hint = Untuk membentuk ${gameState.targetMolecule}, Anda memerlukan:\n;
+            Object.entries(atomCounts).forEach(([atom, count]) => {
+                hint += • ${count} atom ${atom}\n;
+            });
+            hint += \nBentuk molekul: ${moleculeData[gameState.targetMolecule].shape};
+            
+            alert(hint);
+        }
+
+        function learnMolecule(molecule) {
+            const data = moleculeData[molecule];
+            const atomCounts = {};
+            data.atoms.forEach(atom => {
+                atomCounts[atom] = (atomCounts[atom] || 0) + 1;
+            });
+            
+            let info = Molekul ${molecule}:\n\n;
+            info += Bentuk: ${data.shape}\n\n;
+            info += Komposisi atom:\n;
+            Object.entries(atomCounts).forEach(([atom, count]) => {
+                info += • ${count} atom ${atom}\n;
+            });
+            info += \n${data.description};
+            
+            alert(info);
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            let newX = gameState.playerPos.x;
+            let newY = gameState.playerPos.y;
+            
+            switch(e.key) {
+                case 'ArrowUp': newY--; break;
+                case 'ArrowDown': newY++; break;
+                case 'ArrowLeft': newX--; break;
+                case 'ArrowRight': newX++; break;
+                default: return;
+            }
+            
+            e.preventDefault();
+            movePlayer(newX, newY);
+        });
+
+        // Initialize game
+        initGame();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9847efbcd4cf6009',t:'MTc1ODc3NjIwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
