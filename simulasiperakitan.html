@@ -1,304 +1,1020 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Game Simulasi Perakitan Komputer — 1 Halaman</title>
-<style>
-  :root{
-    --bg:#0b1220; --panel:#0f172a; --ink:#fff; --muted:#9fb0c7;
-    --accent:#22c55e; --accent2:#60a5fa; --error:#ef4444; --warn:#f59e0b;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(800px 500px at 15% -10%,#1e293b 0%,#0b1220 60%,#070b16 100%);color:var(--ink)}
-  .wrap{max-width:1200px;margin:0 auto;padding:18px}
-  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
-  .brand{display:flex;gap:10px;align-items:center}
-  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),#7dd3fc);display:grid;place-items:center;color:#062031;font-weight:900}
-  .badge{background:#0c1426;border:1px solid #ffffff24;padding:6px 10px;border-radius:999px;color:#d1e3ff}
-  .panel{background:linear-gradient(180deg,#0f172a,#0d1526);border:1px solid #ffffff20;border-radius:14px;padding:14px}
-  .cols{display:grid;grid-template-columns:1fr 1.35fr .8fr;gap:14px}
-  h1{font-size:20px;margin:0}
-  .btn{appearance:none;border:1px solid #ffffff2b;background:#0f172a;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
-  .btn.primary{background:linear-gradient(135deg,var(--accent2),#7dd3fc); color:#062031; font-weight:800;border-color:#ffffff44}
-  .btn.ghost{background:transparent}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .grid{display:grid;gap:10px}
-
-  /* Palette & Case */
-  .palette{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  .comp{background:#0b1220;border:1px solid #ffffff20;border-radius:12px;padding:10px;cursor:grab}
-  .comp:active{cursor:grabbing}
-  .comp small{color:var(--muted)}
-  .case{min-height:520px;background:repeating-linear-gradient(45deg,#0b1020,#0b1020 12px,#0c162c 12px,#0c162c 24px);border:1px solid #ffffff20;border-radius:14px;padding:10px;position:relative;display:grid;grid-template-rows:auto 1fr;gap:10px}
-  .slots{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-  .slot{border:2px dashed #395076;min-height:68px;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;color:#cfe1ff;background:#0b1428}
-  .slot.filled{border-style:solid;border-color:#1f9d55;background:#0e1b2f}
-  .slot.bad{border-color:var(--error);animation:shake .2s}
-  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-2px)}50%{transform:translateX(2px)}75%{transform:translateX(-1px)}100%{transform:translateX(0)}}
-  .slot .mini{font-size:12px;color:#9fb0c7}
-
-  /* Right panel */
-  .check{list-style:none;padding-left:0;margin:0}
-  .check li{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
-  .ok{color:var(--accent)}
-  .warn{color:var(--warn)}
-  .bad{color:var(--error)}
-  .meter{height:10px;background:#122039;border-radius:999px;border:1px solid #ffffff20;overflow:hidden}
-  .meter>div{height:100%;background:linear-gradient(90deg,#60a5fa,#22c55e);width:0%}
-  .tiny{font-size:12px;color:#b8c6dc}
-
-  .muter{display:flex;gap:8px;align-items:center}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Simulasi Von Neumann</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dataFlow {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            25% { transform: translateX(200px) scale(1.2); opacity: 0.8; }
+            50% { transform: translateX(400px) scale(1); opacity: 0.9; }
+            75% { transform: translateX(600px) scale(1.2); opacity: 0.8; }
+            100% { transform: translateX(800px) scale(1); opacity: 1; }
+        }
+        
+        @keyframes robotWalk {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes errorBlink {
+            0%, 100% { background-color: #ef4444; }
+            50% { background-color: #dc2626; }
+        }
+        
+        @keyframes celebration {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.1); }
+            75% { transform: rotate(10deg) scale(1.1); }
+        }
+        
+        @keyframes handPoint {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+        
+        .bounce { animation: bounce 2s infinite; }
+        .pulse { animation: pulse 2s infinite; }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .data-flow { animation: dataFlow 3s ease-in-out; }
+        .robot-walk { animation: robotWalk 0.5s infinite; }
+        .error-blink { animation: errorBlink 0.5s infinite; }
+        .celebration { animation: celebration 0.6s ease-in-out; }
+        .hand-point { animation: handPoint 1s infinite; }
+        
+        .draggable {
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+        
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        
+        .drop-zone {
+            border: 3px dashed #ccc;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .device-active {
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f59e0b;
+            animation: confetti-fall 3s linear infinite;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
 </head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo">PC</div>
-      <div>
-        <h1>Game Simulasi Perakitan Komputer</h1>
-        <div class="badge">Satu halaman • Drag-&-drop • Pengecekan kompatibilitas + suara</div>
-      </div>
+<body class="gradient-bg min-h-screen font-sans">
+    <!-- Home Page -->
+    <div id="homePage" class="min-h-screen flex flex-col items-center justify-center p-8">
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-bold text-white mb-4 bounce">🖥️ Game Simulasi</h1>
+            <h2 class="text-4xl font-semibold text-yellow-300 mb-8">Von Neumann</h2>
+            <p class="text-xl text-white mb-12 max-w-3xl">Pelajari arsitektur komputer dengan cara yang menyenangkan! Rakit, simulasikan, dan kuasai 4 blok utama Von Neumann.</p>
+        </div>
+        
+        <!-- Computer Illustration -->
+        <div class="bg-white rounded-3xl p-8 mb-12 shadow-2xl max-w-5xl w-full">
+            <div class="text-center mb-8">
+                <div class="text-8xl mb-4">💻</div>
+                <h3 class="text-2xl font-bold text-gray-700 mb-6">Arsitektur Von Neumann</h3>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">📥</div>
+                    <h4 class="font-bold text-blue-600 text-lg">INPUT</h4>
+                    <p class="text-sm text-gray-600 mt-2">Data Masuk</p>
+                </div>
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">⚙️</div>
+                    <h4 class="font-bold text-green-600 text-lg">PROSES</h4>
+                    <p class="text-sm text-gray-600 mt-2">Pengolahan</p>
+                </div>
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-yellow-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">💾</div>
+                    <h4 class="font-bold text-yellow-600 text-lg">MEMORI</h4>
+                    <p class="text-sm text-gray-600 mt-2">Penyimpanan</p>
+                </div>
+                <div class="text-center pulse">
+                    <div class="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center text-white text-3xl mb-3 mx-auto">📤</div>
+                    <h4 class="font-bold text-red-600 text-lg">OUTPUT</h4>
+                    <p class="text-sm text-gray-600 mt-2">Hasil Keluar</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="flex flex-wrap gap-6 justify-center">
+            <button onclick="showInstructions()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                📖 Petunjuk
+            </button>
+            <button onclick="startGame()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                🎮 Mulai Game
+            </button>
+            <button onclick="showQuiz()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all">
+                🧠 Quiz
+            </button>
+        </div>
+        
+        <!-- Sound Control -->
+        <button id="soundToggle" onclick="toggleSound()" class="fixed top-4 right-4 bg-white bg-opacity-20 text-white p-3 rounded-full hover:bg-opacity-30 transition-all">
+            🔊
+        </button>
     </div>
-    <div class="meta">
-      <button id="btnReset" class="btn">Reset</button>
-      <div class="muter">
-        <button id="btnMusic" class="btn">🔊 Musik: Off</button>
-        <button id="btnMuteSfx" class="btn">🔈 SFX: On</button>
-      </div>
-      <div class="badge">Skor: <span id="score">0</span></div>
+
+    <!-- Instructions Page -->
+    <div id="instructionsPage" class="min-h-screen flex flex-col items-center justify-center p-8 hidden">
+        <div class="bg-white rounded-3xl p-12 max-w-5xl shadow-2xl slide-in">
+            <h2 class="text-4xl font-bold text-center mb-8 text-purple-600">📚 Petunjuk Permainan</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-blue-600">🎯 Cara Bermain:</h3>
+                    <ul class="text-lg text-gray-700 space-y-3">
+                        <li>• Klik tombol sesuai instruksi</li>
+                        <li>• Rakit arsitektur Von Neumann</li>
+                        <li>• Data hanya bisa diproses jika urutan benar</li>
+                        <li>• Selesaikan 3 level untuk menang!</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-green-600">🎮 Level Game:</h3>
+                    <ul class="text-lg text-gray-700 space-y-3">
+                        <li>• <strong>Level 1:</strong> Drag & Drop Urutan</li>
+                        <li>• <strong>Level 2:</strong> Cocokkan Perangkat</li>
+                        <li>• <strong>Level 3:</strong> Simulasi Alur Data</li>
+                        <li>• <strong>Bonus:</strong> Quiz Interaktif</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-2xl mb-8">
+                <h3 class="text-xl font-bold mb-4 text-center">🔄 Urutan Von Neumann</h3>
+                <div class="flex justify-center items-center space-x-4">
+                    <div class="text-center">
+                        <div class="text-3xl mb-2 hand-point">👆</div>
+                        <div class="text-3xl mb-2">📥</div>
+                        <span class="font-bold text-blue-600">INPUT</span>
+                    </div>
+                    <div class="text-2xl">→</div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-2">⚙️</div>
+                        <span class="font-bold text-green-600">PROSES</span>
+                    </div>
+                    <div class="text-2xl">→</div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-2">💾</div>
+                        <span class="font-bold text-yellow-600">MEMORI</span>
+                    </div>
+                    <div class="text-2xl">→</div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-2">📤</div>
+                        <span class="font-bold text-red-600">OUTPUT</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button onclick="showHome()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-8 rounded-full text-lg mr-4">
+                    ← Kembali
+                </button>
+                <button onclick="startGame()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg">
+                    🎮 Mulai Game
+                </button>
+            </div>
+        </div>
     </div>
-  </header>
 
-  <div class="cols">
-    <!-- PALETTE -->
-    <div class="panel">
-      <h3>Pilih Komponen</h3>
-      <p class="tiny">Seret ke slot yang benar pada casing. Komponen bersifat contoh (soket, ukuran, dan kebutuhan daya disederhanakan).</p>
-      <div id="palette" class="palette"></div>
+    <!-- Game Page -->
+    <div id="gamePage" class="min-h-screen p-8 hidden">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <button onclick="showHome()" class="bg-white bg-opacity-20 text-white font-bold py-2 px-6 rounded-full hover:bg-opacity-30">
+                ← Home
+            </button>
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-white">🎮 Game Simulasi Von Neumann</h2>
+                <div id="gameStatus" class="text-xl text-yellow-300 mt-2">Level 1: Drag & Drop Urutan</div>
+            </div>
+            <div class="text-right">
+                <div class="text-white text-lg">Level: <span id="currentLevel" class="font-bold">1</span>/3</div>
+                <div class="text-white text-lg">Skor: <span id="gameScore" class="font-bold">0</span></div>
+            </div>
+        </div>
+
+        <!-- Level 1: Drag and Drop -->
+        <div id="level1" class="bg-white rounded-3xl p-8 shadow-2xl fade-in">
+            <h3 class="text-2xl font-bold text-center mb-8 text-purple-600">🎯 Level 1: Susun Urutan Von Neumann</h3>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Draggable Blocks -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Blok Tersedia:</h4>
+                    <div id="draggableBlocks" class="space-y-4">
+                        <div class="draggable bg-blue-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="input">
+                            <span class="text-2xl mr-3">📥</span>
+                            <div>
+                                <div class="font-bold">INPUT</div>
+                                <div class="text-sm">Data Masuk</div>
+                            </div>
+                        </div>
+                        <div class="draggable bg-green-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="process">
+                            <span class="text-2xl mr-3">⚙️</span>
+                            <div>
+                                <div class="font-bold">PROSES</div>
+                                <div class="text-sm">Pengolahan</div>
+                            </div>
+                        </div>
+                        <div class="draggable bg-yellow-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="memory">
+                            <span class="text-2xl mr-3">💾</span>
+                            <div>
+                                <div class="font-bold">MEMORI</div>
+                                <div class="text-sm">Penyimpanan</div>
+                            </div>
+                        </div>
+                        <div class="draggable bg-red-500 text-white p-4 rounded-xl cursor-grab flex items-center" draggable="true" data-block="output">
+                            <span class="text-2xl mr-3">📤</span>
+                            <div>
+                                <div class="font-bold">OUTPUT</div>
+                                <div class="text-sm">Hasil Keluar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Drop Zones -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Susun Urutan:</h4>
+                    <div class="space-y-4">
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="0">
+                            <span>1. Letakkan blok pertama di sini</span>
+                        </div>
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="1">
+                            <span>2. Letakkan blok kedua di sini</span>
+                        </div>
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="2">
+                            <span>3. Letakkan blok ketiga di sini</span>
+                        </div>
+                        <div class="drop-zone h-16 rounded-xl flex items-center justify-center text-gray-500" data-position="3">
+                            <span>4. Letakkan blok keempat di sini</span>
+                        </div>
+                    </div>
+                    
+                    <button id="checkLevel1" onclick="checkLevel1()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl mt-6 disabled:opacity-50" disabled>
+                        ✅ Periksa Urutan
+                    </button>
+                </div>
+            </div>
+            
+            <div id="dataFlowAnimation" class="mt-8 hidden">
+                <div class="relative h-20 bg-gray-100 rounded-xl overflow-hidden">
+                    <div id="dataOrb" class="absolute top-1/2 left-0 transform -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">💫</div>
+                </div>
+                <p class="text-center mt-4 text-green-600 font-bold">🎉 Data berhasil mengalir melalui arsitektur Von Neumann!</p>
+            </div>
+        </div>
+
+        <!-- Level 2: Device Matching -->
+        <div id="level2" class="bg-white rounded-3xl p-8 shadow-2xl hidden">
+            <h3 class="text-2xl font-bold text-center mb-8 text-purple-600">🔌 Level 2: Cocokkan Perangkat</h3>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Perangkat Komputer:</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="keyboard" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="keyboard">
+                            <div class="text-4xl mb-2">⌨️</div>
+                            <div class="font-bold">Keyboard</div>
+                        </div>
+                        <div id="cpu" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="cpu">
+                            <div class="text-4xl mb-2">🖥️</div>
+                            <div class="font-bold">CPU</div>
+                        </div>
+                        <div id="ram" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="ram">
+                            <div class="text-4xl mb-2">💿</div>
+                            <div class="font-bold">RAM</div>
+                        </div>
+                        <div id="monitor" class="device bg-gray-100 p-4 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition-all" data-device="monitor">
+                            <div class="text-4xl mb-2">🖥️</div>
+                            <div class="font-bold">Monitor</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4 text-gray-700">Blok Von Neumann:</h4>
+                    <div class="space-y-4">
+                        <div class="block-target bg-blue-100 p-4 rounded-xl border-2 border-blue-300" data-block="input">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">📥</span>
+                                <div>
+                                    <div class="font-bold text-blue-600">INPUT</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block-target bg-green-100 p-4 rounded-xl border-2 border-green-300" data-block="process">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">⚙️</span>
+                                <div>
+                                    <div class="font-bold text-green-600">PROSES</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block-target bg-yellow-100 p-4 rounded-xl border-2 border-yellow-300" data-block="memory">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">💾</span>
+                                <div>
+                                    <div class="font-bold text-yellow-600">MEMORI</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block-target bg-red-100 p-4 rounded-xl border-2 border-red-300" data-block="output">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">📤</span>
+                                <div>
+                                    <div class="font-bold text-red-600">OUTPUT</div>
+                                    <div class="text-sm text-gray-600">Klik perangkat yang sesuai</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 3: Data Flow Simulation -->
+        <div id="level3" class="bg-white rounded-3xl p-8 shadow-2xl hidden">
+            <h3 class="text-2xl font-bold text-center mb-8 text-purple-600">🤖 Level 3: Simulasi Alur Data</h3>
+            
+            <div class="relative">
+                <!-- Robot Path -->
+                <div class="flex justify-between items-center mb-8">
+                    <div id="robot" class="text-6xl robot-walk">🤖</div>
+                    <div class="flex-1 mx-8">
+                        <div class="flex justify-between items-center">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">📥</div>
+                                <span class="text-sm font-bold text-blue-600">INPUT</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">⚙️</div>
+                                <span class="text-sm font-bold text-green-600">PROSES</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">💾</div>
+                                <span class="text-sm font-bold text-yellow-600">MEMORI</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">📤</div>
+                                <span class="text-sm font-bold text-red-600">OUTPUT</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-6xl">🏆</div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="text-center">
+                    <p class="text-lg mb-6 text-gray-700">Arahkan robot ke jalur yang benar:</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="moveRobot('input')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl">
+                            📥 INPUT
+                        </button>
+                        <button onclick="moveRobot('process')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl">
+                            ⚙️ PROSES
+                        </button>
+                        <button onclick="moveRobot('memory')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 px-6 rounded-xl">
+                            💾 MEMORI
+                        </button>
+                        <button onclick="moveRobot('output')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl">
+                            📤 OUTPUT
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Error Room -->
+                <div id="errorRoom" class="mt-8 bg-red-100 border-2 border-red-300 rounded-xl p-6 text-center hidden">
+                    <div class="text-4xl mb-4">⚠️</div>
+                    <h4 class="text-xl font-bold text-red-600 mb-2">CPU Error Room!</h4>
+                    <p class="text-gray-700 mb-4">Robot masuk ke jalur yang salah. Coba lagi!</p>
+                    <button onclick="resetRobot()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full">
+                        🔄 Kembali ke Awal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="text-center mt-8">
+            <button id="nextLevelBtn" onclick="nextLevel()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg hidden">
+                ➡️ Level Selanjutnya
+            </button>
+            <button id="resetGameBtn" onclick="resetGame()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full ml-4">
+                🔄 Reset
+            </button>
+        </div>
     </div>
 
-    <!-- CASE + SLOTS -->
-    <div class="panel case">
-      <div>
-        <b>Casing: ATX Mid Tower</b> <span class="tiny">• Max GPU 320mm • Max Cooler 160mm</span>
-      </div>
-      <div class="slots" id="slots">
-        <div class="slot" data-slot="cpu">CPU<br><span class="mini">(ke soket mobo)</span></div>
-        <div class="slot" data-slot="mobo">Motherboard</div>
-        <div class="slot" data-slot="ram1">RAM 1</div>
-        <div class="slot" data-slot="ram2">RAM 2</div>
-        <div class="slot" data-slot="gpu">GPU</div>
-        <div class="slot" data-slot="storage">Storage</div>
-        <div class="slot" data-slot="psu">PSU</div>
-        <div class="slot" data-slot="cooler">CPU Cooler</div>
-      </div>
+    <!-- Quiz Page -->
+    <div id="quizPage" class="min-h-screen p-8 hidden">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-white mb-4">🧠 Quiz Von Neumann</h2>
+                <div class="text-xl text-yellow-300">Pertanyaan <span id="questionNumber">1</span> dari 5</div>
+            </div>
+            
+            <div class="bg-white rounded-3xl p-8 shadow-2xl">
+                <div id="quizContent">
+                    <!-- Quiz questions will be inserted here -->
+                </div>
+                
+                <div class="flex justify-between mt-8">
+                    <button onclick="showHome()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full">
+                        ← Kembali
+                    </button>
+                    <div class="text-right">
+                        <div class="text-lg">Skor: <span id="quizScore" class="font-bold">0</span>/5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- CHECKLIST / INFO -->
-    <div class="panel">
-      <h3>Checklist Kompatibilitas</h3>
-      <ul id="checks" class="check"></ul>
-      <h4>Daya Perkiraan</h4>
-      <div class="meter"><div id="wattBar"></div></div>
-      <div class="tiny">Perkiraan total: <b><span id="wTotal">0</span> W</b> • PSU: <b><span id="wPSU">0</span> W</b></div>
-      <hr style="border-color:#1a2944"/>
-      <button id="btnValidate" class="btn primary">Validasi Rakit & +Skor</button>
-      <p id="result" class="tiny"></p>
+    <!-- Victory Modal -->
+    <div id="victoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-3xl p-12 text-center max-w-md shadow-2xl celebration">
+            <div class="text-6xl mb-6">🎉</div>
+            <h3 class="text-3xl font-bold text-green-600 mb-4">Keren!</h3>
+            <p id="victoryMessage" class="text-lg text-gray-700 mb-6">Kamu berhasil merakit arsitektur Von Neumann! 🚀</p>
+            
+            <div class="flex gap-4 justify-center">
+                <button onclick="resetGame()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full">
+                    🔄 Main Lagi
+                </button>
+                <button onclick="showQuiz()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-full">
+                    🧠 Quiz
+                </button>
+                <button onclick="showHome()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full">
+                    🏠 Home
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-// ===== Data Komponen (contoh ringkas) =====
-const COMPONENTS=[
-  {id:'cpu_r5', kind:'cpu', name:'CPU AMD Ryzen 5', socket:'AM4', watt:65},
-  {id:'cpu_i5', kind:'cpu', name:'CPU Intel Core i5', socket:'LGA1200', watt:65},
-  {id:'mobo_am4', kind:'mobo', name:'Motherboard AM4 ATX', socket:'AM4', form:'ATX'},
-  {id:'mobo_lga', kind:'mobo', name:'Motherboard LGA1200 ATX', socket:'LGA1200', form:'ATX'},
-  {id:'ram_8', kind:'ram', name:'RAM 8GB DDR4', size:8, watt:5},
-  {id:'ram_16', kind:'ram', name:'RAM 16GB DDR4', size:16, watt:6},
-  {id:'gpu_3060', kind:'gpu', name:'GPU RTX 3060 (242mm)', len:242, watt:170},
-  {id:'gpu_4090', kind:'gpu', name:'GPU RTX 4090 (304mm)', len:304, watt:450},
-  {id:'ssd_1tb', kind:'storage', name:'SSD NVMe 1TB', watt:5},
-  {id:'hdd_2tb', kind:'storage', name:'HDD 2TB', watt:9},
-  {id:'psu_550', kind:'psu', name:'PSU 550W 80+ Bronze', watt:550},
-  {id:'psu_850', kind:'psu', name:'PSU 850W 80+ Gold', watt:850},
-  {id:'cool_120', kind:'cooler', name:'Air Cooler 120mm (150mm tinggi)', height:150, watt:3},
-  {id:'cool_240', kind:'cooler', name:'AIO 240mm (rad di atas)', height:160, watt:8},
-];
-
-const CASE={gpuMax:320, coolerMax:160};
-
-// ===== State =====
-let state={ placed:{} , score:0, sfx:true, music:false };
-
-// ===== Audio (WebAudio, tanpa file eksternal) =====
-const AC=new (window.AudioContext||window.webkitAudioContext)();
-let musicNode=null;
-function tone(freq=660,dur=0.12,type='sine',gain=0.05){
-  if(!state.sfx) return;
-  const o=AC.createOscillator();
-  const g=AC.createGain();
-  o.type=type; o.frequency.value=freq; g.gain.value=gain; o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime+dur);
-}
-function good(){tone(880,0.08,'triangle'); setTimeout(()=>tone(1175,0.08,'triangle'),90)}
-function bad(){tone(220,0.15,'sawtooth',0.06)}
-function place(){tone(520,0.06,'square')}
-function startMusic(){
-  if(state.music){return}
-  const g=AC.createGain(); g.gain.value=0.03; g.connect(AC.destination);
-  const o1=AC.createOscillator(); const o2=AC.createOscillator();
-  o1.type='sine'; o2.type='triangle';
-  let t=AC.currentTime; const bpm=110; const beat=60/bpm;
-  function sched(){
-    if(!state.music){o1.stop(); o2.stop(); return}
-    // Bass
-    o1.frequency.setValueAtTime(110,t); o1.frequency.setValueAtTime(110,t+beat);
-    o1.frequency.setValueAtTime(147,t+2*beat); o1.frequency.setValueAtTime(110,t+3*beat);
-    // Lead arpeggio
-    const notes=[440,554,659,554];
-    notes.forEach((n,i)=> o2.frequency.setValueAtTime(n,t+i*beat/2));
-    t+=4*beat;
-    setTimeout(sched, 4*beat*1000);
-  }
-  o1.connect(g); o2.connect(g); o1.start(); o2.start(); state.music=true; musicNode={o1,o2,g}; sched();
-}
-function stopMusic(){ if(!state.music) return; musicNode.o1.stop(); musicNode.o2.stop(); state.music=false; }
-
-// ===== DOM =====
-const paletteEl=document.getElementById('palette');
-const slotsEl=document.getElementById('slots');
-const checksEl=document.getElementById('checks');
-const wattBar=document.getElementById('wattBar');
-const wTotal=document.getElementById('wTotal');
-const wPSU=document.getElementById('wPSU');
-const resultEl=document.getElementById('result');
-const scoreEl=document.getElementById('score');
-
-// Render palette
-function renderPalette(){
-  paletteEl.innerHTML='';
-  COMPONENTS.forEach(c=>{
-    const d=document.createElement('div');
-    d.className='comp'; d.draggable=true; d.id=c.id;
-    d.innerHTML=`<b>${icon(c.kind)} ${c.name}</b><br><small>${desc(c)}</small>`;
-    d.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/plain', c.id)});
-    paletteEl.appendChild(d);
-  })
-}
-function icon(kind){
-  return ({cpu:'🧠',mobo:'🧩',ram:'📗',gpu:'🎮',storage:'💾',psu:'🔌',cooler:'❄️'})[kind]||'🔧'
-}
-function desc(c){
-  if(c.kind==='cpu') return `Socket ${c.socket} • ${c.watt}W`;
-  if(c.kind==='mobo') return `Socket ${c.socket} • ${c.form}`;
-  if(c.kind==='ram') return `${c.size}GB • ${c.watt}W`;
-  if(c.kind==='gpu') return `${c.len}mm • ${c.watt}W`;
-  if(c.kind==='storage') return `${c.watt}W`;
-  if(c.kind==='psu') return `${c.watt}W Max`;
-  if(c.kind==='cooler') return `${c.height}mm • ${c.watt}W`;
-  return ''
-}
-
-// Slots DnD
-Array.from(slotsEl.children).forEach(slot=>{
-  slot.addEventListener('dragover',e=>{e.preventDefault(); slot.style.borderColor='#7dd3fc'});
-  slot.addEventListener('dragleave',()=>{slot.style.borderColor='#395076'});
-  slot.addEventListener('drop',e=>{
-    e.preventDefault(); slot.style.borderColor='#1f9d55';
-    const id=e.dataTransfer.getData('text/plain');
-    placeToSlot(id, slot.dataset.slot);
-  })
-});
-
-function placeToSlot(id, slotName){
-  const comp=COMPONENTS.find(x=>x.id===id); if(!comp) return;
-  // enforce type -> slot mapping
-  const map={cpu:'cpu', mobo:'mobo', ram:['ram1','ram2'], gpu:'gpu', storage:'storage', psu:'psu', cooler:'cooler'};
-  const allowed=Array.isArray(map[comp.kind])?map[comp.kind]:[map[comp.kind]];
-  if(!allowed.includes(slotName)){
-    flashSlot(slotName,'bad'); bad(); resultEl.textContent='Komponen tidak cocok dengan slot.'; return;
-  }
-  // remove if already in some slot
-  for(const s in state.placed){ if(state.placed[s]?.id===id){ state.placed[s]=null; markSlot(s,null); }}
-  state.placed[slotName]=comp; markSlot(slotName,comp); place();
-  renderChecks(); updateWatt();
-}
-
-function markSlot(slotName, comp){
-  const el=[...slotsEl.children].find(x=>x.dataset.slot===slotName); if(!el) return;
-  if(!comp){ el.classList.remove('filled'); el.innerHTML=slotLabel(slotName); return; }
-  el.classList.add('filled'); el.classList.remove('bad');
-  el.innerHTML=`${icon(comp.kind)} ${comp.name}<br><span class='mini'>${desc(comp)}</span>`;
-}
-function slotLabel(sn){
-  const pretty={cpu:'CPU',mobo:'Motherboard',ram1:'RAM 1',ram2:'RAM 2',gpu:'GPU',storage:'Storage',psu:'PSU',cooler:'CPU Cooler'}; return pretty[sn]||sn;
-}
-function flashSlot(sn,cls){ const el=[...slotsEl.children].find(x=>x.dataset.slot===sn); el.classList.add(cls); setTimeout(()=>el.classList.remove(cls),300) }
-
-// Checks & score
-function renderChecks(){
-  const s=state.placed; checksEl.innerHTML='';
-  const items=[];
-  // 1. Mobo hadir
-  items.push({ok:!!s.mobo, text:'Motherboard terpasang'});
-  // 2. CPU kompatibel
-  let cpuOK=false; if(s.cpu && s.mobo){ cpuOK=(s.cpu.socket===s.mobo.socket); }
-  items.push({ok:!!s.cpu, warn: s.cpu&&!cpuOK, text: s.cpu?`CPU ${cpuOK?'cocok':'TIDAK cocok'} dengan soket mobo (${s.cpu.socket} vs ${s.mobo?.socket||'?'})`:'CPU belum terpasang'});
-  // 3. RAM minimal 1
-  const ramCount=[s.ram1,s.ram2].filter(Boolean).length; items.push({ok:ramCount>=1, text:`RAM terpasang: ${ramCount}`});
-  // 4. GPU panjang <= case
-  let gpuOK = s.gpu? s.gpu.len<=CASE.gpuMax : false; items.push({ok:!!s.gpu, warn:s.gpu&&!gpuOK, text: s.gpu?`Panjang GPU ${s.gpu.len}mm ${gpuOK?'OK':'> Batas '+CASE.gpuMax+'mm'}`:'GPU belum terpasang'});
-  // 5. Cooler tinggi <= case
-  let coolOK= s.cooler? s.cooler.height<=CASE.coolerMax : false; items.push({ok:!!s.cooler, warn:s.cooler&&!coolOK, text: s.cooler?`Tinggi Cooler ${s.cooler.height}mm ${coolOK?'OK':'> Batas '+CASE.coolerMax+'mm'}`:'Cooler belum terpasang'});
-  // 6. Storage ada
-  items.push({ok:!!s.storage, text: s.storage?`Storage: ${s.storage.name}`:'Storage belum terpasang'});
-  // 7. PSU cukup
-  const totalW = calcTotalW(); const psuW = s.psu?.watt||0; const psuOK = psuW>=Math.round(totalW*1.25); // buffer 25%
-  items.push({ok:!!s.psu, warn: s.psu && !psuOK, text: s.psu?`Kapasitas PSU ${psuW}W ${psuOK?'mencukupi (≥'+Math.round(totalW*1.25)+'W)':'kurang dari kebutuhan'}`:'PSU belum terpasang'});
-
-  items.forEach(it=>{
-    const li=document.createElement('li');
-    li.innerHTML = `<span class="${it.ok?'ok':(it.warn?'warn':'bad')}">●</span> ${it.text}`; checksEl.appendChild(li);
-  })
-}
-
-function calcTotalW(){
-  const s=state.placed; let w=0; ['cpu','ram1','ram2','gpu','storage','cooler'].forEach(k=>{ if(s[k]) w += (s[k].watt||0) }); return w||0;
-}
-function updateWatt(){
-  const total=calcTotalW(); const psu=state.placed.psu?.watt||0; wTotal.textContent=total; wPSU.textContent=psu;
-  const percent=Math.min(100, (total/(psu||total||1))*100); wattBar.style.width= percent+'%';
-}
-
-function validateBuild(){
-  const s=state.placed; const all=[s.mobo,s.cpu,s.storage,s.psu,s.cooler,s.gpu].every(Boolean) && ([s.ram1,s.ram2].some(Boolean));
-  if(!all){ resultEl.innerHTML = '❗ Masih ada komponen yang <b>belum terpasang</b>.'; bad(); return false }
-  const socketOK = s.cpu.socket===s.mobo.socket;
-  const gpuOK = s.gpu.len<=CASE.gpuMax; const coolOK = s.cooler.height<=CASE.coolerMax; const psuOK = (s.psu.watt>=Math.round(calcTotalW()*1.25));
-  if(socketOK && gpuOK && coolOK && psuOK){ resultEl.innerHTML='✅ Rakit valid! +5 skor'; state.score+=5; scoreEl.textContent=state.score; good(); return true }
-  else{
-    const msgs=[]; if(!socketOK) msgs.push('Soket CPU ≠ Mobo'); if(!gpuOK) msgs.push('GPU terlalu panjang'); if(!coolOK) msgs.push('Cooler terlalu tinggi'); if(!psuOK) msgs.push('PSU kurang kuat');
-    resultEl.innerHTML='⚠️ Perbaiki: '+msgs.join(', '); bad(); return false;
-  }
-}
-
-// ===== Controls =====
-const btnValidate=document.getElementById('btnValidate');
-const btnReset=document.getElementById('btnReset');
-const btnMusic=document.getElementById('btnMusic');
-const btnMuteSfx=document.getElementById('btnMuteSfx');
-
-btnValidate.addEventListener('click',validateBuild);
-btnReset.addEventListener('click',()=>{ state.placed={}; document.querySelectorAll('.slot').forEach(s=>{s.classList.remove('filled'); s.innerHTML=slotLabel(s.dataset.slot)}); renderChecks(); updateWatt(); resultEl.textContent=''; tone(330,0.05); });
-btnMusic.addEventListener('click',()=>{ if(!state.music){ startMusic(); btnMusic.textContent='🔊 Musik: On'; } else { stopMusic(); btnMusic.textContent='🔊 Musik: Off'; } });
-btnMuteSfx.addEventListener('click',()=>{ state.sfx=!state.sfx; btnMuteSfx.textContent = '🔈 SFX: '+(state.sfx?'On':'Off'); });
-
-// Init
-renderPalette(); renderChecks(); updateWatt();
-</script>
-</body>
+    <script>
+        // Game State
+        let currentLevel = 1;
+        let gameScore = 0;
+        let soundEnabled = true;
+        let robotPosition = 0;
+        let robotStep = 0;
+        let quizCurrentQuestion = 0;
+        let quizScore = 0;
+        
+        const correctSequence = ['input', 'process', 'memory', 'output'];
+        const deviceMapping = {
+            'input': 'keyboard',
+            'process': 'cpu', 
+            'memory': 'ram',
+            'output': 'monitor'
+        };
+        
+        const quizQuestions = [
+            {
+                question: "Apa fungsi utama blok INPUT dalam arsitektur Von Neumann?",
+                options: ["Memproses data", "Menerima data dari luar", "Menyimpan data", "Menampilkan hasil"],
+                correct: 1
+            },
+            {
+                question: "Perangkat mana yang termasuk dalam blok PROSES?",
+                options: ["Monitor", "Keyboard", "CPU", "Printer"],
+                correct: 2
+            },
+            {
+                question: "Fungsi utama MEMORI dalam komputer adalah?",
+                options: ["Menampilkan data", "Menyimpan data sementara", "Memproses data", "Menerima input"],
+                correct: 1
+            },
+            {
+                question: "Contoh perangkat OUTPUT adalah?",
+                options: ["Mouse", "RAM", "Monitor", "CPU"],
+                correct: 2
+            },
+            {
+                question: "Urutan yang benar dalam arsitektur Von Neumann adalah?",
+                options: ["Output → Input → Proses → Memori", "Input → Proses → Memori → Output", "Memori → Proses → Input → Output", "Proses → Input → Output → Memori"],
+                correct: 1
+            }
+        ];
+        
+        // Sound Effects
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'success':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+                    break;
+                case 'error':
+                    oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(196, audioContext.currentTime + 0.1);
+                    break;
+                case 'victory':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.2);
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.4);
+                    break;
+                case 'click':
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    break;
+            }
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        // Navigation Functions
+        function showHome() {
+            hideAllPages();
+            document.getElementById('homePage').classList.remove('hidden');
+        }
+        
+        function showInstructions() {
+            hideAllPages();
+            document.getElementById('instructionsPage').classList.remove('hidden');
+        }
+        
+        function startGame() {
+            hideAllPages();
+            document.getElementById('gamePage').classList.remove('hidden');
+            resetGame();
+        }
+        
+        function showQuiz() {
+            hideAllPages();
+            document.getElementById('quizPage').classList.remove('hidden');
+            startQuiz();
+        }
+        
+        function hideAllPages() {
+            document.getElementById('homePage').classList.add('hidden');
+            document.getElementById('instructionsPage').classList.add('hidden');
+            document.getElementById('gamePage').classList.add('hidden');
+            document.getElementById('quizPage').classList.add('hidden');
+            document.getElementById('victoryModal').classList.add('hidden');
+        }
+        
+        // Game Functions
+        function resetGame() {
+            currentLevel = 1;
+            gameScore = 0;
+            robotPosition = 0;
+            robotStep = 0;
+            
+            document.getElementById('currentLevel').textContent = currentLevel;
+            document.getElementById('gameScore').textContent = gameScore;
+            document.getElementById('gameStatus').textContent = 'Level 1: Drag & Drop Urutan';
+            
+            showLevel(1);
+            resetLevel1();
+            resetLevel2();
+            resetLevel3();
+        }
+        
+        function showLevel(level) {
+            document.getElementById('level1').classList.add('hidden');
+            document.getElementById('level2').classList.add('hidden');
+            document.getElementById('level3').classList.add('hidden');
+            document.getElementById('nextLevelBtn').classList.add('hidden');
+            
+            document.getElementById(`level${level}`).classList.remove('hidden');
+            
+            const statusTexts = {
+                1: 'Level 1: Drag & Drop Urutan',
+                2: 'Level 2: Cocokkan Perangkat', 
+                3: 'Level 3: Simulasi Alur Data'
+            };
+            
+            document.getElementById('gameStatus').textContent = statusTexts[level];
+        }
+        
+        function nextLevel() {
+            playSound('click');
+            currentLevel++;
+            document.getElementById('currentLevel').textContent = currentLevel;
+            
+            if (currentLevel <= 3) {
+                showLevel(currentLevel);
+            } else {
+                showVictory();
+            }
+        }
+        
+        // Level 1: Drag and Drop
+        let draggedElement = null;
+        let dropSequence = [];
+        
+        function initializeDragAndDrop() {
+            const draggables = document.querySelectorAll('.draggable');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    draggedElement = e.target;
+                    e.target.style.opacity = '0.5';
+                });
+                
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '1';
+                });
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    
+                    if (draggedElement) {
+                        const position = parseInt(zone.dataset.position);
+                        const blockType = draggedElement.dataset.block;
+                        
+                        zone.innerHTML = draggedElement.outerHTML;
+                        zone.querySelector('.draggable').draggable = false;
+                        zone.querySelector('.draggable').classList.remove('draggable');
+                        
+                        dropSequence[position] = blockType;
+                        
+                        // Check if all positions are filled
+                        if (dropSequence.filter(item => item).length === 4) {
+                            document.getElementById('checkLevel1').disabled = false;
+                        }
+                    }
+                });
+            });
+        }
+        
+        function resetLevel1() {
+            dropSequence = [];
+            const dropZones = document.querySelectorAll('.drop-zone');
+            dropZones.forEach((zone, index) => {
+                zone.innerHTML = `<span>${index + 1}. Letakkan blok ${['pertama', 'kedua', 'ketiga', 'keempat'][index]} di sini</span>`;
+            });
+            document.getElementById('checkLevel1').disabled = true;
+            document.getElementById('dataFlowAnimation').classList.add('hidden');
+        }
+        
+        function checkLevel1() {
+            playSound('click');
+            const isCorrect = JSON.stringify(dropSequence) === JSON.stringify(correctSequence);
+            
+            if (isCorrect) {
+                playSound('success');
+                gameScore += 100;
+                document.getElementById('gameScore').textContent = gameScore;
+                
+                // Show data flow animation
+                document.getElementById('dataFlowAnimation').classList.remove('hidden');
+                document.getElementById('dataOrb').classList.add('data-flow');
+                
+                setTimeout(() => {
+                    document.getElementById('nextLevelBtn').classList.remove('hidden');
+                }, 3000);
+                
+            } else {
+                playSound('error');
+                alert('Urutan belum benar! Coba lagi. Ingat: Input → Proses → Memori → Output');
+                resetLevel1();
+            }
+        }
+        
+        // Level 2: Device Matching
+        let selectedDevice = null;
+        let matchedDevices = 0;
+        
+        function initializeDeviceMatching() {
+            const devices = document.querySelectorAll('.device');
+            const blockTargets = document.querySelectorAll('.block-target');
+            
+            devices.forEach(device => {
+                device.addEventListener('click', () => {
+                    playSound('click');
+                    
+                    // Remove previous selection
+                    devices.forEach(d => d.classList.remove('ring-4', 'ring-blue-500'));
+                    
+                    // Select current device
+                    device.classList.add('ring-4', 'ring-blue-500');
+                    selectedDevice = device.dataset.device;
+                });
+            });
+            
+            blockTargets.forEach(target => {
+                target.addEventListener('click', () => {
+                    if (!selectedDevice) {
+                        alert('Pilih perangkat terlebih dahulu!');
+                        return;
+                    }
+                    
+                    const blockType = target.dataset.block;
+                    const correctDevice = deviceMapping[blockType];
+                    
+                    if (selectedDevice === correctDevice) {
+                        playSound('success');
+                        target.classList.add('bg-green-200', 'border-green-500');
+                        target.querySelector('.text-sm').textContent = '✅ Benar!';
+                        
+                        // Animate device
+                        const deviceElement = document.querySelector(`[data-device="${selectedDevice}"]`);
+                        deviceElement.classList.add('device-active');
+                        
+                        matchedDevices++;
+                        gameScore += 50;
+                        document.getElementById('gameScore').textContent = gameScore;
+                        
+                        if (matchedDevices === 4) {
+                            setTimeout(() => {
+                                document.getElementById('nextLevelBtn').classList.remove('hidden');
+                            }, 1000);
+                        }
+                        
+                    } else {
+                        playSound('error');
+                        target.classList.add('error-blink');
+                        setTimeout(() => {
+                            target.classList.remove('error-blink');
+                        }, 1000);
+                    }
+                    
+                    // Reset selection
+                    document.querySelectorAll('.device').forEach(d => d.classList.remove('ring-4', 'ring-blue-500'));
+                    selectedDevice = null;
+                });
+            });
+        }
+        
+        function resetLevel2() {
+            matchedDevices = 0;
+            selectedDevice = null;
+            
+            document.querySelectorAll('.device').forEach(device => {
+                device.classList.remove('ring-4', 'ring-blue-500', 'device-active');
+            });
+            
+            document.querySelectorAll('.block-target').forEach(target => {
+                target.classList.remove('bg-green-200', 'border-green-500', 'error-blink');
+                target.querySelector('.text-sm').textContent = 'Klik perangkat yang sesuai';
+            });
+        }
+        
+        // Level 3: Robot Simulation
+        function moveRobot(direction) {
+            playSound('click');
+            
+            const expectedStep = correctSequence[robotStep];
+            
+            if (direction === expectedStep) {
+                playSound('success');
+                robotStep++;
+                robotPosition += 200;
+                
+                document.getElementById('robot').style.transform = `translateX(${robotPosition}px)`;
+                gameScore += 75;
+                document.getElementById('gameScore').textContent = gameScore;
+                
+                if (robotStep === 4) {
+                    // Victory!
+                    setTimeout(() => {
+                        createConfetti();
+                        showVictory();
+                    }, 1000);
+                }
+                
+            } else {
+                playSound('error');
+                document.getElementById('errorRoom').classList.remove('hidden');
+            }
+        }
+        
+        function resetRobot() {
+            playSound('click');
+            robotStep = 0;
+            robotPosition = 0;
+            document.getElementById('robot').style.transform = 'translateX(0px)';
+            document.getElementById('errorRoom').classList.add('hidden');
+        }
+        
+        function resetLevel3() {
+            resetRobot();
+        }
+        
+        // Quiz Functions
+        function startQuiz() {
+            quizCurrentQuestion = 0;
+            quizScore = 0;
+            document.getElementById('quizScore').textContent = quizScore;
+            showQuestion();
+        }
+        
+        function showQuestion() {
+            const question = quizQuestions[quizCurrentQuestion];
+            document.getElementById('questionNumber').textContent = quizCurrentQuestion + 1;
+            
+            const quizContent = document.getElementById('quizContent');
+            quizContent.innerHTML = `
+                <h3 class="text-xl font-bold mb-6">${question.question}</h3>
+                <div class="space-y-3">
+                    ${question.options.map((option, index) => `
+                        <button onclick="selectAnswer(${index})" class="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function selectAnswer(selectedIndex) {
+            playSound('click');
+            const question = quizQuestions[quizCurrentQuestion];
+            const buttons = document.querySelectorAll('#quizContent button');
+            
+            buttons.forEach((button, index) => {
+                if (index === question.correct) {
+                    button.classList.add('bg-green-200', 'border-green-500');
+                } else if (index === selectedIndex && index !== question.correct) {
+                    button.classList.add('bg-red-200', 'border-red-500');
+                }
+                button.disabled = true;
+            });
+            
+            if (selectedIndex === question.correct) {
+                playSound('success');
+                quizScore++;
+                document.getElementById('quizScore').textContent = quizScore;
+            } else {
+                playSound('error');
+            }
+            
+            setTimeout(() => {
+                quizCurrentQuestion++;
+                if (quizCurrentQuestion < quizQuestions.length) {
+                    showQuestion();
+                } else {
+                    showQuizResult();
+                }
+            }, 2000);
+        }
+        
+        function showQuizResult() {
+            let badge = '';
+            let message = '';
+            
+            if (quizScore <= 2) {
+                badge = '🌱 Pemula';
+                message = 'Terus belajar! Kamu pasti bisa lebih baik lagi.';
+            } else if (quizScore <= 4) {
+                badge = '⭐ Hebat';
+                message = 'Bagus sekali! Kamu sudah memahami konsep dasar Von Neumann.';
+            } else {
+                badge = '🏆 Master Von Neumann';
+                message = 'Luar biasa! Kamu benar-benar menguasai arsitektur Von Neumann!';
+            }
+            
+            document.getElementById('quizContent').innerHTML = `
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-2xl font-bold mb-4">Quiz Selesai!</h3>
+                    <div class="text-4xl mb-4">${badge}</div>
+                    <p class="text-lg mb-6">${message}</p>
+                    <div class="text-xl font-bold">Skor Akhir: ${quizScore}/5</div>
+                    <button onclick="startQuiz()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full mt-6 mr-4">
+                        🔄 Coba Lagi
+                    </button>
+                    <button onclick="showHome()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full mt-6">
+                        🏠 Home
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Victory Functions
+        function showVictory() {
+            const messages = [
+                "Jangan menyerah, coba lagi! 💪",
+                "Keren! Kamu berhasil merakit arsitektur Von Neumann! 🚀",
+                "Luar biasa! Kamu benar-benar menguasai konsep Von Neumann! 🌟"
+            ];
+            
+            let messageIndex = 1;
+            if (gameScore < 200) messageIndex = 0;
+            else if (gameScore >= 300) messageIndex = 2;
+            
+            document.getElementById('victoryMessage').textContent = messages[messageIndex];
+            document.getElementById('victoryModal').classList.remove('hidden');
+            playSound('victory');
+        }
+        
+        function createConfetti() {
+            const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showHome();
+            initializeDragAndDrop();
+            initializeDeviceMatching();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98489b7a34395c31',t:'MTc1ODc4MzIzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
