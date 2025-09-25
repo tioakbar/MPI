@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Game Simulasi Perakitan Komputer — 1 Halaman</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#0f172a; --ink:#fff; --muted:#9fb0c7;
+    --accent:#22c55e; --accent2:#60a5fa; --error:#ef4444; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(800px 500px at 15% -10%,#1e293b 0%,#0b1220 60%,#070b16 100%);color:var(--ink)}
+  .wrap{max-width:1200px;margin:0 auto;padding:18px}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),#7dd3fc);display:grid;place-items:center;color:#062031;font-weight:900}
+  .badge{background:#0c1426;border:1px solid #ffffff24;padding:6px 10px;border-radius:999px;color:#d1e3ff}
+  .panel{background:linear-gradient(180deg,#0f172a,#0d1526);border:1px solid #ffffff20;border-radius:14px;padding:14px}
+  .cols{display:grid;grid-template-columns:1fr 1.35fr .8fr;gap:14px}
+  h1{font-size:20px;margin:0}
+  .btn{appearance:none;border:1px solid #ffffff2b;background:#0f172a;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn.primary{background:linear-gradient(135deg,var(--accent2),#7dd3fc); color:#062031; font-weight:800;border-color:#ffffff44}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .grid{display:grid;gap:10px}
+
+  /* Palette & Case */
+  .palette{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .comp{background:#0b1220;border:1px solid #ffffff20;border-radius:12px;padding:10px;cursor:grab}
+  .comp:active{cursor:grabbing}
+  .comp small{color:var(--muted)}
+  .case{min-height:520px;background:repeating-linear-gradient(45deg,#0b1020,#0b1020 12px,#0c162c 12px,#0c162c 24px);border:1px solid #ffffff20;border-radius:14px;padding:10px;position:relative;display:grid;grid-template-rows:auto 1fr;gap:10px}
+  .slots{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .slot{border:2px dashed #395076;min-height:68px;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;color:#cfe1ff;background:#0b1428}
+  .slot.filled{border-style:solid;border-color:#1f9d55;background:#0e1b2f}
+  .slot.bad{border-color:var(--error);animation:shake .2s}
+  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-2px)}50%{transform:translateX(2px)}75%{transform:translateX(-1px)}100%{transform:translateX(0)}}
+  .slot .mini{font-size:12px;color:#9fb0c7}
+
+  /* Right panel */
+  .check{list-style:none;padding-left:0;margin:0}
+  .check li{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+  .ok{color:var(--accent)}
+  .warn{color:var(--warn)}
+  .bad{color:var(--error)}
+  .meter{height:10px;background:#122039;border-radius:999px;border:1px solid #ffffff20;overflow:hidden}
+  .meter>div{height:100%;background:linear-gradient(90deg,#60a5fa,#22c55e);width:0%}
+  .tiny{font-size:12px;color:#b8c6dc}
+
+  .muter{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">PC</div>
+      <div>
+        <h1>Game Simulasi Perakitan Komputer</h1>
+        <div class="badge">Satu halaman • Drag-&-drop • Pengecekan kompatibilitas + suara</div>
+      </div>
+    </div>
+    <div class="meta">
+      <button id="btnReset" class="btn">Reset</button>
+      <div class="muter">
+        <button id="btnMusic" class="btn">🔊 Musik: Off</button>
+        <button id="btnMuteSfx" class="btn">🔈 SFX: On</button>
+      </div>
+      <div class="badge">Skor: <span id="score">0</span></div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <!-- PALETTE -->
+    <div class="panel">
+      <h3>Pilih Komponen</h3>
+      <p class="tiny">Seret ke slot yang benar pada casing. Komponen bersifat contoh (soket, ukuran, dan kebutuhan daya disederhanakan).</p>
+      <div id="palette" class="palette"></div>
+    </div>
+
+    <!-- CASE + SLOTS -->
+    <div class="panel case">
+      <div>
+        <b>Casing: ATX Mid Tower</b> <span class="tiny">• Max GPU 320mm • Max Cooler 160mm</span>
+      </div>
+      <div class="slots" id="slots">
+        <div class="slot" data-slot="cpu">CPU<br><span class="mini">(ke soket mobo)</span></div>
+        <div class="slot" data-slot="mobo">Motherboard</div>
+        <div class="slot" data-slot="ram1">RAM 1</div>
+        <div class="slot" data-slot="ram2">RAM 2</div>
+        <div class="slot" data-slot="gpu">GPU</div>
+        <div class="slot" data-slot="storage">Storage</div>
+        <div class="slot" data-slot="psu">PSU</div>
+        <div class="slot" data-slot="cooler">CPU Cooler</div>
+      </div>
+    </div>
+
+    <!-- CHECKLIST / INFO -->
+    <div class="panel">
+      <h3>Checklist Kompatibilitas</h3>
+      <ul id="checks" class="check"></ul>
+      <h4>Daya Perkiraan</h4>
+      <div class="meter"><div id="wattBar"></div></div>
+      <div class="tiny">Perkiraan total: <b><span id="wTotal">0</span> W</b> • PSU: <b><span id="wPSU">0</span> W</b></div>
+      <hr style="border-color:#1a2944"/>
+      <button id="btnValidate" class="btn primary">Validasi Rakit & +Skor</button>
+      <p id="result" class="tiny"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Data Komponen (contoh ringkas) =====
+const COMPONENTS=[
+  {id:'cpu_r5', kind:'cpu', name:'CPU AMD Ryzen 5', socket:'AM4', watt:65},
+  {id:'cpu_i5', kind:'cpu', name:'CPU Intel Core i5', socket:'LGA1200', watt:65},
+  {id:'mobo_am4', kind:'mobo', name:'Motherboard AM4 ATX', socket:'AM4', form:'ATX'},
+  {id:'mobo_lga', kind:'mobo', name:'Motherboard LGA1200 ATX', socket:'LGA1200', form:'ATX'},
+  {id:'ram_8', kind:'ram', name:'RAM 8GB DDR4', size:8, watt:5},
+  {id:'ram_16', kind:'ram', name:'RAM 16GB DDR4', size:16, watt:6},
+  {id:'gpu_3060', kind:'gpu', name:'GPU RTX 3060 (242mm)', len:242, watt:170},
+  {id:'gpu_4090', kind:'gpu', name:'GPU RTX 4090 (304mm)', len:304, watt:450},
+  {id:'ssd_1tb', kind:'storage', name:'SSD NVMe 1TB', watt:5},
+  {id:'hdd_2tb', kind:'storage', name:'HDD 2TB', watt:9},
+  {id:'psu_550', kind:'psu', name:'PSU 550W 80+ Bronze', watt:550},
+  {id:'psu_850', kind:'psu', name:'PSU 850W 80+ Gold', watt:850},
+  {id:'cool_120', kind:'cooler', name:'Air Cooler 120mm (150mm tinggi)', height:150, watt:3},
+  {id:'cool_240', kind:'cooler', name:'AIO 240mm (rad di atas)', height:160, watt:8},
+];
+
+const CASE={gpuMax:320, coolerMax:160};
+
+// ===== State =====
+let state={ placed:{} , score:0, sfx:true, music:false };
+
+// ===== Audio (WebAudio, tanpa file eksternal) =====
+const AC=new (window.AudioContext||window.webkitAudioContext)();
+let musicNode=null;
+function tone(freq=660,dur=0.12,type='sine',gain=0.05){
+  if(!state.sfx) return;
+  const o=AC.createOscillator();
+  const g=AC.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=gain; o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime+dur);
+}
+function good(){tone(880,0.08,'triangle'); setTimeout(()=>tone(1175,0.08,'triangle'),90)}
+function bad(){tone(220,0.15,'sawtooth',0.06)}
+function place(){tone(520,0.06,'square')}
+function startMusic(){
+  if(state.music){return}
+  const g=AC.createGain(); g.gain.value=0.03; g.connect(AC.destination);
+  const o1=AC.createOscillator(); const o2=AC.createOscillator();
+  o1.type='sine'; o2.type='triangle';
+  let t=AC.currentTime; const bpm=110; const beat=60/bpm;
+  function sched(){
+    if(!state.music){o1.stop(); o2.stop(); return}
+    // Bass
+    o1.frequency.setValueAtTime(110,t); o1.frequency.setValueAtTime(110,t+beat);
+    o1.frequency.setValueAtTime(147,t+2*beat); o1.frequency.setValueAtTime(110,t+3*beat);
+    // Lead arpeggio
+    const notes=[440,554,659,554];
+    notes.forEach((n,i)=> o2.frequency.setValueAtTime(n,t+i*beat/2));
+    t+=4*beat;
+    setTimeout(sched, 4*beat*1000);
+  }
+  o1.connect(g); o2.connect(g); o1.start(); o2.start(); state.music=true; musicNode={o1,o2,g}; sched();
+}
+function stopMusic(){ if(!state.music) return; musicNode.o1.stop(); musicNode.o2.stop(); state.music=false; }
+
+// ===== DOM =====
+const paletteEl=document.getElementById('palette');
+const slotsEl=document.getElementById('slots');
+const checksEl=document.getElementById('checks');
+const wattBar=document.getElementById('wattBar');
+const wTotal=document.getElementById('wTotal');
+const wPSU=document.getElementById('wPSU');
+const resultEl=document.getElementById('result');
+const scoreEl=document.getElementById('score');
+
+// Render palette
+function renderPalette(){
+  paletteEl.innerHTML='';
+  COMPONENTS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='comp'; d.draggable=true; d.id=c.id;
+    d.innerHTML=`<b>${icon(c.kind)} ${c.name}</b><br><small>${desc(c)}</small>`;
+    d.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('text/plain', c.id)});
+    paletteEl.appendChild(d);
+  })
+}
+function icon(kind){
+  return ({cpu:'🧠',mobo:'🧩',ram:'📗',gpu:'🎮',storage:'💾',psu:'🔌',cooler:'❄️'})[kind]||'🔧'
+}
+function desc(c){
+  if(c.kind==='cpu') return `Socket ${c.socket} • ${c.watt}W`;
+  if(c.kind==='mobo') return `Socket ${c.socket} • ${c.form}`;
+  if(c.kind==='ram') return `${c.size}GB • ${c.watt}W`;
+  if(c.kind==='gpu') return `${c.len}mm • ${c.watt}W`;
+  if(c.kind==='storage') return `${c.watt}W`;
+  if(c.kind==='psu') return `${c.watt}W Max`;
+  if(c.kind==='cooler') return `${c.height}mm • ${c.watt}W`;
+  return ''
+}
+
+// Slots DnD
+Array.from(slotsEl.children).forEach(slot=>{
+  slot.addEventListener('dragover',e=>{e.preventDefault(); slot.style.borderColor='#7dd3fc'});
+  slot.addEventListener('dragleave',()=>{slot.style.borderColor='#395076'});
+  slot.addEventListener('drop',e=>{
+    e.preventDefault(); slot.style.borderColor='#1f9d55';
+    const id=e.dataTransfer.getData('text/plain');
+    placeToSlot(id, slot.dataset.slot);
+  })
+});
+
+function placeToSlot(id, slotName){
+  const comp=COMPONENTS.find(x=>x.id===id); if(!comp) return;
+  // enforce type -> slot mapping
+  const map={cpu:'cpu', mobo:'mobo', ram:['ram1','ram2'], gpu:'gpu', storage:'storage', psu:'psu', cooler:'cooler'};
+  const allowed=Array.isArray(map[comp.kind])?map[comp.kind]:[map[comp.kind]];
+  if(!allowed.includes(slotName)){
+    flashSlot(slotName,'bad'); bad(); resultEl.textContent='Komponen tidak cocok dengan slot.'; return;
+  }
+  // remove if already in some slot
+  for(const s in state.placed){ if(state.placed[s]?.id===id){ state.placed[s]=null; markSlot(s,null); }}
+  state.placed[slotName]=comp; markSlot(slotName,comp); place();
+  renderChecks(); updateWatt();
+}
+
+function markSlot(slotName, comp){
+  const el=[...slotsEl.children].find(x=>x.dataset.slot===slotName); if(!el) return;
+  if(!comp){ el.classList.remove('filled'); el.innerHTML=slotLabel(slotName); return; }
+  el.classList.add('filled'); el.classList.remove('bad');
+  el.innerHTML=`${icon(comp.kind)} ${comp.name}<br><span class='mini'>${desc(comp)}</span>`;
+}
+function slotLabel(sn){
+  const pretty={cpu:'CPU',mobo:'Motherboard',ram1:'RAM 1',ram2:'RAM 2',gpu:'GPU',storage:'Storage',psu:'PSU',cooler:'CPU Cooler'}; return pretty[sn]||sn;
+}
+function flashSlot(sn,cls){ const el=[...slotsEl.children].find(x=>x.dataset.slot===sn); el.classList.add(cls); setTimeout(()=>el.classList.remove(cls),300) }
+
+// Checks & score
+function renderChecks(){
+  const s=state.placed; checksEl.innerHTML='';
+  const items=[];
+  // 1. Mobo hadir
+  items.push({ok:!!s.mobo, text:'Motherboard terpasang'});
+  // 2. CPU kompatibel
+  let cpuOK=false; if(s.cpu && s.mobo){ cpuOK=(s.cpu.socket===s.mobo.socket); }
+  items.push({ok:!!s.cpu, warn: s.cpu&&!cpuOK, text: s.cpu?`CPU ${cpuOK?'cocok':'TIDAK cocok'} dengan soket mobo (${s.cpu.socket} vs ${s.mobo?.socket||'?'})`:'CPU belum terpasang'});
+  // 3. RAM minimal 1
+  const ramCount=[s.ram1,s.ram2].filter(Boolean).length; items.push({ok:ramCount>=1, text:`RAM terpasang: ${ramCount}`});
+  // 4. GPU panjang <= case
+  let gpuOK = s.gpu? s.gpu.len<=CASE.gpuMax : false; items.push({ok:!!s.gpu, warn:s.gpu&&!gpuOK, text: s.gpu?`Panjang GPU ${s.gpu.len}mm ${gpuOK?'OK':'> Batas '+CASE.gpuMax+'mm'}`:'GPU belum terpasang'});
+  // 5. Cooler tinggi <= case
+  let coolOK= s.cooler? s.cooler.height<=CASE.coolerMax : false; items.push({ok:!!s.cooler, warn:s.cooler&&!coolOK, text: s.cooler?`Tinggi Cooler ${s.cooler.height}mm ${coolOK?'OK':'> Batas '+CASE.coolerMax+'mm'}`:'Cooler belum terpasang'});
+  // 6. Storage ada
+  items.push({ok:!!s.storage, text: s.storage?`Storage: ${s.storage.name}`:'Storage belum terpasang'});
+  // 7. PSU cukup
+  const totalW = calcTotalW(); const psuW = s.psu?.watt||0; const psuOK = psuW>=Math.round(totalW*1.25); // buffer 25%
+  items.push({ok:!!s.psu, warn: s.psu && !psuOK, text: s.psu?`Kapasitas PSU ${psuW}W ${psuOK?'mencukupi (≥'+Math.round(totalW*1.25)+'W)':'kurang dari kebutuhan'}`:'PSU belum terpasang'});
+
+  items.forEach(it=>{
+    const li=document.createElement('li');
+    li.innerHTML = `<span class="${it.ok?'ok':(it.warn?'warn':'bad')}">●</span> ${it.text}`; checksEl.appendChild(li);
+  })
+}
+
+function calcTotalW(){
+  const s=state.placed; let w=0; ['cpu','ram1','ram2','gpu','storage','cooler'].forEach(k=>{ if(s[k]) w += (s[k].watt||0) }); return w||0;
+}
+function updateWatt(){
+  const total=calcTotalW(); const psu=state.placed.psu?.watt||0; wTotal.textContent=total; wPSU.textContent=psu;
+  const percent=Math.min(100, (total/(psu||total||1))*100); wattBar.style.width= percent+'%';
+}
+
+function validateBuild(){
+  const s=state.placed; const all=[s.mobo,s.cpu,s.storage,s.psu,s.cooler,s.gpu].every(Boolean) && ([s.ram1,s.ram2].some(Boolean));
+  if(!all){ resultEl.innerHTML = '❗ Masih ada komponen yang <b>belum terpasang</b>.'; bad(); return false }
+  const socketOK = s.cpu.socket===s.mobo.socket;
+  const gpuOK = s.gpu.len<=CASE.gpuMax; const coolOK = s.cooler.height<=CASE.coolerMax; const psuOK = (s.psu.watt>=Math.round(calcTotalW()*1.25));
+  if(socketOK && gpuOK && coolOK && psuOK){ resultEl.innerHTML='✅ Rakit valid! +5 skor'; state.score+=5; scoreEl.textContent=state.score; good(); return true }
+  else{
+    const msgs=[]; if(!socketOK) msgs.push('Soket CPU ≠ Mobo'); if(!gpuOK) msgs.push('GPU terlalu panjang'); if(!coolOK) msgs.push('Cooler terlalu tinggi'); if(!psuOK) msgs.push('PSU kurang kuat');
+    resultEl.innerHTML='⚠️ Perbaiki: '+msgs.join(', '); bad(); return false;
+  }
+}
+
+// ===== Controls =====
+const btnValidate=document.getElementById('btnValidate');
+const btnReset=document.getElementById('btnReset');
+const btnMusic=document.getElementById('btnMusic');
+const btnMuteSfx=document.getElementById('btnMuteSfx');
+
+btnValidate.addEventListener('click',validateBuild);
+btnReset.addEventListener('click',()=>{ state.placed={}; document.querySelectorAll('.slot').forEach(s=>{s.classList.remove('filled'); s.innerHTML=slotLabel(s.dataset.slot)}); renderChecks(); updateWatt(); resultEl.textContent=''; tone(330,0.05); });
+btnMusic.addEventListener('click',()=>{ if(!state.music){ startMusic(); btnMusic.textContent='🔊 Musik: On'; } else { stopMusic(); btnMusic.textContent='🔊 Musik: Off'; } });
+btnMuteSfx.addEventListener('click',()=>{ state.sfx=!state.sfx; btnMuteSfx.textContent = '🔈 SFX: '+(state.sfx?'On':'Off'); });
+
+// Init
+renderPalette(); renderChecks(); updateWatt();
+</script>
+</body>
+</html>
