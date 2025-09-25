@@ -339,9 +339,9 @@
         </div>
 
         <div class="controls">
-            <button class="btn" onclick="previousContent()">⬅ Sebelumnya</button>
+            <button class="btn" onclick="previousContent()">⬅️ Sebelumnya</button>
             <button class="btn btn-secondary" onclick="showHint()">💡 Petunjuk</button>
-            <button class="btn" onclick="nextContent()">Selanjutnya ➡</button>
+            <button class="btn" onclick="nextContent()">Selanjutnya ➡️</button>
         </div>
 
         <div class="feedback" id="feedback"></div>
@@ -397,7 +397,7 @@
             },
             {
                 name: "Firewall",
-                icon: "🛡",
+                icon: "🛡️",
                 description: "Firewall adalah perangkat keamanan yang memantau dan mengontrol lalu lintas jaringan berdasarkan aturan keamanan yang telah ditentukan. Firewall melindungi jaringan dari ancaman eksternal.",
                 functions: [
                     "Memblokir akses yang tidak diinginkan",
@@ -527,7 +527,7 @@
                 
                 <h3>🔧 Fungsi Utama:</h3>
                 <ul>
-                    ${device.functions.map(func => <li>${func}</li>).join('')}
+                    ${device.functions.map(func => `<li>${func}</li>`).join('')}
                 </ul>
                 
                 <h3>💡 Contoh Penggunaan:</h3>
@@ -597,7 +597,7 @@
                 <div class="controls">
                     <button class="btn" onclick="connectDevices()">🔗 Hubungkan Perangkat</button>
                     <button class="btn btn-secondary" onclick="testNetwork()">🧪 Test Jaringan</button>
-                    <button class="btn btn-danger" onclick="clearSimulation()">🗑 Bersihkan</button>
+                    <button class="btn btn-danger" onclick="clearSimulation()">🗑️ Bersihkan</button>
                 </div>
             `;
         }
@@ -605,7 +605,7 @@
         function markAsLearned() {
             if (!gameState.learnedDevices.includes(gameState.currentIndex)) {
                 gameState.learnedDevices.push(gameState.currentIndex);
-                showFeedback(✅ ${networkDevices[gameState.currentIndex].name} telah dipelajari!);
+                showFeedback(`✅ ${networkDevices[gameState.currentIndex].name} telah dipelajari!`);
                 updateProgress();
                 loadLearningContent(); // Refresh to show learned state
             }
@@ -618,7 +618,7 @@
             });
             
             // Select current option
-            document.querySelector([data-index="${index}"]).classList.add('selected');
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
             document.getElementById('submit-btn').disabled = false;
         }
 
@@ -641,9 +641,9 @@
             
             if (isCorrect) {
                 gameState.quizScore += 10;
-                showFeedback(✅ Benar! ${question.explanation});
+                showFeedback(`✅ Benar! ${question.explanation}`);
             } else {
-                showFeedback(❌ Salah. ${question.explanation}, 'error');
+                showFeedback(`❌ Salah. ${question.explanation}`, 'error');
             }
             
             document.getElementById('submit-btn').style.display = 'none';
@@ -691,7 +691,7 @@
             
             const deviceElement = document.createElement('div');
             deviceElement.className = 'draggable-device';
-            deviceElement.innerHTML = <div>${icon}</div><small>${name}</small>;
+            deviceElement.innerHTML = `<div>${icon}</div><small>${name}</small>`;
             deviceElement.dataset.deviceId = deviceId;
             deviceElement.dataset.deviceName = name;
             
@@ -714,7 +714,7 @@
                 y: y
             });
             
-            showFeedback(${name} ditambahkan ke simulasi!);
+            showFeedback(`${name} ditambahkan ke simulasi!`);
         }
 
         function makeDraggable(element) {
@@ -786,7 +786,7 @@
             line.style.left = x1 + 'px';
             line.style.top = y1 + 'px';
             line.style.width = length + 'px';
-            line.style.transform = rotate(${angle}deg);
+            line.style.transform = `rotate(${angle}deg)`;
             
             document.getElementById('simulation-area').appendChild(line);
         }
@@ -816,17 +816,17 @@
                 score += 25;
                 feedback += "✅ Switch: Komunikasi LAN optimal\n";
             } else {
-                feedback += "⚠ Switch: Komunikasi LAN bisa ditingkatkan\n";
+                feedback += "⚠️ Switch: Komunikasi LAN bisa ditingkatkan\n";
             }
             
             if (hasFirewall) {
                 score += 20;
                 feedback += "✅ Firewall: Keamanan jaringan terjamin\n";
             } else {
-                feedback += "⚠ Firewall: Keamanan perlu ditingkatkan\n";
+                feedback += "⚠️ Firewall: Keamanan perlu ditingkatkan\n";
             }
             
-            feedback += \nSkor Jaringan: ${score}/75;
+            feedback += `\nSkor Jaringan: ${score}/75`;
             
             showFeedback(feedback);
         }
@@ -883,9 +883,9 @@
             const totalDevices = networkDevices.length;
             const progressPercentage = Math.round((learnedCount / totalDevices) * 100);
             
-            document.getElementById('learned-count').textContent = ${learnedCount}/${totalDevices};
+            document.getElementById('learned-count').textContent = `${learnedCount}/${totalDevices}`;
             document.getElementById('quiz-score').textContent = gameState.quizScore;
-            document.getElementById('progress').textContent = ${progressPercentage}%;
+            document.getElementById('progress').textContent = `${progressPercentage}%`;
             
             // Update level based on progress
             const newLevel = Math.floor(progressPercentage / 20) + 1;
@@ -896,7 +896,7 @@
         function showFeedback(message, type = 'success') {
             const feedback = document.getElementById('feedback');
             feedback.textContent = message;
-            feedback.className = feedback ${type};
+            feedback.className = `feedback ${type}`;
             feedback.style.display = 'block';
             
             setTimeout(() => {
