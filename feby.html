@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Learning Academy</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .progress-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .progress-card {
+            background: rgba(255,255,255,0.15);
+            padding: 15px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .progress-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .learning-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .mode-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.2);
+        }
+
+        .mode-card.active {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.2);
+        }
+
+        .mode-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .learning-content {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+            min-height: 400px;
+        }
+
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .device-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .device-card:hover {
+            transform: scale(1.05);
+            border-color: #ffd700;
+        }
+
+        .device-card.learned {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.2);
+        }
+
+        .device-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            text-align: center;
+        }
+
+        .quiz-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.2);
+        }
+
+        .option.selected {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.2);
+        }
+
+        .option.correct {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.3);
+        }
+
+        .option.incorrect {
+            border-color: #ff4757;
+            background: rgba(255,71,87,0.3);
+        }
+
+        .simulation-area {
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .draggable-device {
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: move;
+            border: 2px solid #ffd700;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 3px;
+            background: #00ff88;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,255,136,0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+        }
+
+        .feedback {
+            background: rgba(0,255,136,0.2);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .feedback.error {
+            background: rgba(255,71,87,0.2);
+            border-color: #ff4757;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            height: 15px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .learning-modes {
+                grid-template-columns: 1fr;
+            }
+            
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Network Learning Academy</h1>
+            <p>Pelajari perangkat jaringan dengan cara yang menyenangkan!</p>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-card">
+                <div>📚 Materi Dipelajari</div>
+                <div class="progress-value" id="learned-count">0/6</div>
+            </div>
+            <div class="progress-card">
+                <div>🏆 Skor Quiz</div>
+                <div class="progress-value" id="quiz-score">0</div>
+            </div>
+            <div class="progress-card">
+                <div>⭐ Level</div>
+                <div class="progress-value" id="level">1</div>
+            </div>
+            <div class="progress-card">
+                <div>🎯 Progress</div>
+                <div class="progress-value" id="progress">0%</div>
+            </div>
+        </div>
+
+        <div class="learning-modes">
+            <div class="mode-card active" onclick="switchMode('learn')">
+                <div class="mode-icon">📖</div>
+                <h3>Mode Belajar</h3>
+                <p>Pelajari setiap perangkat jaringan dengan detail</p>
+            </div>
+            <div class="mode-card" onclick="switchMode('quiz')">
+                <div class="mode-icon">🧠</div>
+                <h3>Mode Quiz</h3>
+                <p>Uji pemahaman dengan pertanyaan interaktif</p>
+            </div>
+            <div class="mode-card" onclick="switchMode('simulation')">
+                <div class="mode-icon">🔧</div>
+                <h3>Mode Simulasi</h3>
+                <p>Praktik membangun jaringan secara virtual</p>
+            </div>
+        </div>
+
+        <div class="learning-content" id="content-area">
+            <!-- Content will be loaded here -->
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="previousContent()">⬅ Sebelumnya</button>
+            <button class="btn btn-secondary" onclick="showHint()">💡 Petunjuk</button>
+            <button class="btn" onclick="nextContent()">Selanjutnya ➡</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        let gameState = {
+            currentMode: 'learn',
+            currentIndex: 0,
+            learnedDevices: [],
+            quizScore: 0,
+            level: 1,
+            currentQuiz: 0,
+            simulationDevices: []
+        };
+
+        const networkDevices = [
+            {
+                name: "Router",
+                icon: "🔀",
+                description: "Router adalah perangkat yang menghubungkan dua atau lebih jaringan. Router bekerja pada layer 3 (Network Layer) dan menggunakan alamat IP untuk menentukan jalur terbaik untuk mengirim data.",
+                functions: [
+                    "Menghubungkan jaringan yang berbeda",
+                    "Menentukan jalur terbaik untuk data",
+                    "Melakukan NAT (Network Address Translation)",
+                    "Menyediakan keamanan dengan firewall built-in"
+                ],
+                examples: "Digunakan di rumah untuk menghubungkan ke internet, di kantor untuk menghubungkan LAN ke WAN"
+            },
+            {
+                name: "Switch",
+                icon: "🔗",
+                description: "Switch adalah perangkat yang menghubungkan beberapa perangkat dalam satu jaringan lokal (LAN). Switch bekerja pada layer 2 (Data Link Layer) dan menggunakan MAC address untuk mengirim data ke perangkat yang tepat.",
+                functions: [
+                    "Menghubungkan perangkat dalam LAN",
+                    "Mempelajari MAC address perangkat",
+                    "Mengurangi collision domain",
+                    "Menyediakan full-duplex communication"
+                ],
+                examples: "Menghubungkan komputer, printer, dan server dalam satu kantor"
+            },
+            {
+                name: "Hub",
+                icon: "⭕",
+                description: "Hub adalah perangkat sederhana yang menghubungkan beberapa perangkat dalam jaringan. Hub bekerja pada layer 1 (Physical Layer) dan mengirim data ke semua port tanpa memfilter.",
+                functions: [
+                    "Menghubungkan perangkat dalam jaringan sederhana",
+                    "Memperkuat sinyal (repeater)",
+                    "Berbagi bandwidth antar semua port",
+                    "Tidak memiliki intelligence untuk filtering"
+                ],
+                examples: "Jarang digunakan sekarang, digantikan oleh switch karena lebih efisien"
+            },
+            {
+                name: "Firewall",
+                icon: "🛡",
+                description: "Firewall adalah perangkat keamanan yang memantau dan mengontrol lalu lintas jaringan berdasarkan aturan keamanan yang telah ditentukan. Firewall melindungi jaringan dari ancaman eksternal.",
+                functions: [
+                    "Memblokir akses yang tidak diinginkan",
+                    "Memantau lalu lintas jaringan",
+                    "Mencegah serangan dari luar",
+                    "Mengatur akses berdasarkan policy"
+                ],
+                examples: "Melindungi jaringan perusahaan dari hacker, memblokir situs berbahaya"
+            },
+            {
+                name: "Access Point",
+                icon: "📶",
+                description: "Access Point (AP) adalah perangkat yang menyediakan akses nirkabel (WiFi) ke jaringan kabel. AP memungkinkan perangkat mobile terhubung ke jaringan tanpa kabel.",
+                functions: [
+                    "Menyediakan koneksi WiFi",
+                    "Menghubungkan perangkat wireless ke jaringan kabel",
+                    "Mengatur autentikasi wireless",
+                    "Memperluas jangkauan jaringan"
+                ],
+                examples: "WiFi di rumah, hotspot di kafe, jaringan wireless di kantor"
+            },
+            {
+                name: "Modem",
+                icon: "📡",
+                description: "Modem (Modulator-Demodulator) adalah perangkat yang mengubah sinyal digital menjadi analog dan sebaliknya. Modem menghubungkan jaringan lokal ke internet melalui ISP.",
+                functions: [
+                    "Mengubah sinyal digital ke analog",
+                    "Menghubungkan ke Internet Service Provider",
+                    "Menyediakan akses internet",
+                    "Melakukan modulasi dan demodulasi sinyal"
+                ],
+                examples: "Modem ADSL untuk internet rumah, modem kabel, modem fiber optik"
+            }
+        ];
+
+        const quizQuestions = [
+            {
+                question: "Perangkat mana yang bekerja pada Layer 3 (Network Layer)?",
+                options: ["Hub", "Switch", "Router", "Access Point"],
+                correct: 2,
+                explanation: "Router bekerja pada Layer 3 dan menggunakan alamat IP untuk routing."
+            },
+            {
+                question: "Apa fungsi utama dari Switch?",
+                options: [
+                    "Menghubungkan ke internet",
+                    "Menghubungkan perangkat dalam LAN",
+                    "Menyediakan WiFi",
+                    "Melindungi dari virus"
+                ],
+                correct: 1,
+                explanation: "Switch menghubungkan perangkat dalam satu jaringan lokal (LAN)."
+            },
+            {
+                question: "Perangkat mana yang menyediakan keamanan jaringan?",
+                options: ["Hub", "Modem", "Firewall", "Switch"],
+                correct: 2,
+                explanation: "Firewall melindungi jaringan dari ancaman dan mengontrol akses."
+            },
+            {
+                question: "Apa kepanjangan dari AP dalam jaringan?",
+                options: ["Access Point", "Application Protocol", "Address Port", "Auto Program"],
+                correct: 0,
+                explanation: "AP adalah Access Point yang menyediakan akses WiFi."
+            },
+            {
+                question: "Perangkat mana yang mengubah sinyal digital ke analog?",
+                options: ["Router", "Switch", "Firewall", "Modem"],
+                correct: 3,
+                explanation: "Modem melakukan modulasi (digital ke analog) dan demodulasi."
+            },
+            {
+                question: "Mengapa Switch lebih baik dari Hub?",
+                options: [
+                    "Lebih murah",
+                    "Mengurangi collision dan lebih efisien",
+                    "Lebih mudah dipasang",
+                    "Tidak butuh listrik"
+                ],
+                correct: 1,
+                explanation: "Switch mengurangi collision domain dan lebih efisien dalam mengirim data."
+            }
+        ];
+
+        function switchMode(mode) {
+            gameState.currentMode = mode;
+            gameState.currentIndex = 0;
+            
+            // Update active mode card
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.closest('.mode-card').classList.add('active');
+            
+            loadContent();
+        }
+
+        function loadContent() {
+            const contentArea = document.getElementById('content-area');
+            
+            switch(gameState.currentMode) {
+                case 'learn':
+                    loadLearningContent();
+                    break;
+                case 'quiz':
+                    loadQuizContent();
+                    break;
+                case 'simulation':
+                    loadSimulationContent();
+                    break;
+            }
+        }
+
+        function loadLearningContent() {
+            const device = networkDevices[gameState.currentIndex];
+            const isLearned = gameState.learnedDevices.includes(gameState.currentIndex);
+            
+            document.getElementById('content-area').innerHTML = `
+                <h2>${device.icon} ${device.name}</h2>
+                <div class="device-grid">
+                    <div class="device-card ${isLearned ? 'learned' : ''}" onclick="markAsLearned()">
+                        <div class="device-icon">${device.icon}</div>
+                        <h3>${device.name}</h3>
+                        <p>${device.description}</p>
+                    </div>
+                </div>
+                
+                <h3>🔧 Fungsi Utama:</h3>
+                <ul>
+                    ${device.functions.map(func => <li>${func}</li>).join('')}
+                </ul>
+                
+                <h3>💡 Contoh Penggunaan:</h3>
+                <p>${device.examples}</p>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${((gameState.currentIndex + 1) / networkDevices.length) * 100}%"></div>
+                </div>
+                <p>Progress: ${gameState.currentIndex + 1} dari ${networkDevices.length} perangkat</p>
+            `;
+        }
+
+        function loadQuizContent() {
+            if (gameState.currentQuiz >= quizQuestions.length) {
+                showQuizResults();
+                return;
+            }
+            
+            const question = quizQuestions[gameState.currentQuiz];
+            
+            document.getElementById('content-area').innerHTML = `
+                <div class="quiz-container">
+                    <h2>🧠 Quiz Perangkat Jaringan</h2>
+                    <p>Pertanyaan ${gameState.currentQuiz + 1} dari ${quizQuestions.length}</p>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${((gameState.currentQuiz + 1) / quizQuestions.length) * 100}%"></div>
+                    </div>
+                    
+                    <div class="question">${question.question}</div>
+                    
+                    <div class="options">
+                        ${question.options.map((option, index) => 
+                            `<div class="option" onclick="selectOption(${index})" data-index="${index}">
+                                ${String.fromCharCode(65 + index)}. ${option}
+                            </div>`
+                        ).join('')}
+                    </div>
+                    
+                    <button class="btn" onclick="submitAnswer()" id="submit-btn" disabled>Submit Jawaban</button>
+                    <button class="btn btn-secondary" onclick="nextQuestion()" id="next-btn" style="display: none;">Pertanyaan Selanjutnya</button>
+                </div>
+            `;
+        }
+
+        function loadSimulationContent() {
+            document.getElementById('content-area').innerHTML = `
+                <h2>🔧 Simulasi Jaringan</h2>
+                <p>Drag dan drop perangkat untuk membangun jaringan. Klik "Hubungkan" untuk membuat koneksi antar perangkat.</p>
+                
+                <div class="device-grid">
+                    ${networkDevices.map((device, index) => 
+                        `<div class="device-card" onclick="addToSimulation('${device.name}', '${device.icon}')">
+                            <div class="device-icon">${device.icon}</div>
+                            <h4>${device.name}</h4>
+                            <small>Klik untuk menambah ke simulasi</small>
+                        </div>`
+                    ).join('')}
+                </div>
+                
+                <div class="simulation-area" id="simulation-area">
+                    <p style="text-align: center; margin-top: 100px; color: rgba(255,255,255,0.7);">
+                        Klik perangkat di atas untuk menambahkannya ke area simulasi
+                    </p>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn" onclick="connectDevices()">🔗 Hubungkan Perangkat</button>
+                    <button class="btn btn-secondary" onclick="testNetwork()">🧪 Test Jaringan</button>
+                    <button class="btn btn-danger" onclick="clearSimulation()">🗑 Bersihkan</button>
+                </div>
+            `;
+        }
+
+        function markAsLearned() {
+            if (!gameState.learnedDevices.includes(gameState.currentIndex)) {
+                gameState.learnedDevices.push(gameState.currentIndex);
+                showFeedback(✅ ${networkDevices[gameState.currentIndex].name} telah dipelajari!);
+                updateProgress();
+                loadLearningContent(); // Refresh to show learned state
+            }
+        }
+
+        function selectOption(index) {
+            // Clear previous selections
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Select current option
+            document.querySelector([data-index="${index}"]).classList.add('selected');
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        function submitAnswer() {
+            const selectedOption = document.querySelector('.option.selected');
+            if (!selectedOption) return;
+            
+            const selectedIndex = parseInt(selectedOption.dataset.index);
+            const question = quizQuestions[gameState.currentQuiz];
+            const isCorrect = selectedIndex === question.correct;
+            
+            // Show correct/incorrect styling
+            document.querySelectorAll('.option').forEach((opt, index) => {
+                if (index === question.correct) {
+                    opt.classList.add('correct');
+                } else if (index === selectedIndex && !isCorrect) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            if (isCorrect) {
+                gameState.quizScore += 10;
+                showFeedback(✅ Benar! ${question.explanation});
+            } else {
+                showFeedback(❌ Salah. ${question.explanation}, 'error');
+            }
+            
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'inline-block';
+            updateProgress();
+        }
+
+        function nextQuestion() {
+            gameState.currentQuiz++;
+            loadQuizContent();
+        }
+
+        function showQuizResults() {
+            const totalQuestions = quizQuestions.length;
+            const percentage = (gameState.quizScore / (totalQuestions * 10)) * 100;
+            
+            document.getElementById('content-area').innerHTML = `
+                <div class="quiz-container">
+                    <h2>🏆 Hasil Quiz</h2>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">
+                            ${percentage >= 80 ? '🥇' : percentage >= 60 ? '🥈' : '🥉'}
+                        </div>
+                        <h3>Skor Anda: ${gameState.quizScore} dari ${totalQuestions * 10}</h3>
+                        <p>Persentase: ${percentage.toFixed(1)}%</p>
+                        <p>${percentage >= 80 ? 'Excellent! Anda menguasai materi dengan baik!' : 
+                             percentage >= 60 ? 'Good! Masih ada ruang untuk improvement.' : 
+                             'Perlu belajar lebih lanjut. Coba ulangi quiz!'}</p>
+                    </div>
+                    
+                    <button class="btn" onclick="resetQuiz()">🔄 Ulangi Quiz</button>
+                    <button class="btn btn-secondary" onclick="switchMode('learn')">📖 Kembali Belajar</button>
+                </div>
+            `;
+        }
+
+        function addToSimulation(name, icon) {
+            const simulationArea = document.getElementById('simulation-area');
+            const deviceId = gameState.simulationDevices.length;
+            
+            // Clear placeholder text
+            if (gameState.simulationDevices.length === 0) {
+                simulationArea.innerHTML = '';
+            }
+            
+            const deviceElement = document.createElement('div');
+            deviceElement.className = 'draggable-device';
+            deviceElement.innerHTML = <div>${icon}</div><small>${name}</small>;
+            deviceElement.dataset.deviceId = deviceId;
+            deviceElement.dataset.deviceName = name;
+            
+            // Random position
+            const x = Math.random() * (simulationArea.offsetWidth - 80);
+            const y = Math.random() * (simulationArea.offsetHeight - 80);
+            deviceElement.style.left = x + 'px';
+            deviceElement.style.top = y + 'px';
+            
+            // Make draggable
+            makeDraggable(deviceElement);
+            
+            simulationArea.appendChild(deviceElement);
+            gameState.simulationDevices.push({
+                id: deviceId,
+                name: name,
+                icon: icon,
+                element: deviceElement,
+                x: x,
+                y: y
+            });
+            
+            showFeedback(${name} ditambahkan ke simulasi!);
+        }
+
+        function makeDraggable(element) {
+            let isDragging = false;
+            
+            element.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                const rect = element.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                function mouseMoveHandler(e) {
+                    if (isDragging) {
+                        const simulationRect = document.getElementById('simulation-area').getBoundingClientRect();
+                        const newX = e.clientX - simulationRect.left - offsetX;
+                        const newY = e.clientY - simulationRect.top - offsetY;
+                        
+                        element.style.left = Math.max(0, Math.min(newX, simulationRect.width - 80)) + 'px';
+                        element.style.top = Math.max(0, Math.min(newY, simulationRect.height - 80)) + 'px';
+                    }
+                }
+                
+                function mouseUpHandler() {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+                }
+                
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            });
+        }
+
+        function connectDevices() {
+            if (gameState.simulationDevices.length < 2) {
+                showFeedback("Butuh minimal 2 perangkat untuk membuat koneksi!", 'error');
+                return;
+            }
+            
+            // Clear existing connections
+            document.querySelectorAll('.connection-line').forEach(line => line.remove());
+            
+            // Create connections between devices
+            for (let i = 0; i < gameState.simulationDevices.length - 1; i++) {
+                const device1 = gameState.simulationDevices[i];
+                const device2 = gameState.simulationDevices[i + 1];
+                createConnection(device1.element, device2.element);
+            }
+            
+            showFeedback("Perangkat berhasil dihubungkan!");
+        }
+
+        function createConnection(element1, element2) {
+            const line = document.createElement('div');
+            line.className = 'connection-line';
+            
+            const rect1 = element1.getBoundingClientRect();
+            const rect2 = element2.getBoundingClientRect();
+            const simulationRect = document.getElementById('simulation-area').getBoundingClientRect();
+            
+            const x1 = rect1.left - simulationRect.left + rect1.width / 2;
+            const y1 = rect1.top - simulationRect.top + rect1.height / 2;
+            const x2 = rect2.left - simulationRect.left + rect2.width / 2;
+            const y2 = rect2.top - simulationRect.top + rect2.height / 2;
+            
+            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            
+            line.style.left = x1 + 'px';
+            line.style.top = y1 + 'px';
+            line.style.width = length + 'px';
+            line.style.transform = rotate(${angle}deg);
+            
+            document.getElementById('simulation-area').appendChild(line);
+        }
+
+        function testNetwork() {
+            if (gameState.simulationDevices.length === 0) {
+                showFeedback("Tidak ada perangkat untuk ditest!", 'error');
+                return;
+            }
+            
+            const deviceNames = gameState.simulationDevices.map(d => d.name);
+            const hasRouter = deviceNames.includes('Router');
+            const hasSwitch = deviceNames.includes('Switch');
+            const hasFirewall = deviceNames.includes('Firewall');
+            
+            let score = 0;
+            let feedback = "Hasil Test Jaringan:\n";
+            
+            if (hasRouter) {
+                score += 30;
+                feedback += "✅ Router: Routing berfungsi dengan baik\n";
+            } else {
+                feedback += "❌ Router: Tidak ada routing, koneksi terbatas\n";
+            }
+            
+            if (hasSwitch) {
+                score += 25;
+                feedback += "✅ Switch: Komunikasi LAN optimal\n";
+            } else {
+                feedback += "⚠ Switch: Komunikasi LAN bisa ditingkatkan\n";
+            }
+            
+            if (hasFirewall) {
+                score += 20;
+                feedback += "✅ Firewall: Keamanan jaringan terjamin\n";
+            } else {
+                feedback += "⚠ Firewall: Keamanan perlu ditingkatkan\n";
+            }
+            
+            feedback += \nSkor Jaringan: ${score}/75;
+            
+            showFeedback(feedback);
+        }
+
+        function clearSimulation() {
+            gameState.simulationDevices = [];
+            document.getElementById('simulation-area').innerHTML = `
+                <p style="text-align: center; margin-top: 100px; color: rgba(255,255,255,0.7);">
+                    Klik perangkat di atas untuk menambahkannya ke area simulasi
+                </p>
+            `;
+            showFeedback("Simulasi dibersihkan!");
+        }
+
+        function resetQuiz() {
+            gameState.currentQuiz = 0;
+            gameState.quizScore = 0;
+            updateProgress();
+            loadQuizContent();
+        }
+
+        function previousContent() {
+            if (gameState.currentMode === 'learn' && gameState.currentIndex > 0) {
+                gameState.currentIndex--;
+                loadContent();
+            } else if (gameState.currentMode === 'quiz' && gameState.currentQuiz > 0) {
+                gameState.currentQuiz--;
+                loadContent();
+            }
+        }
+
+        function nextContent() {
+            if (gameState.currentMode === 'learn' && gameState.currentIndex < networkDevices.length - 1) {
+                gameState.currentIndex++;
+                loadContent();
+            } else if (gameState.currentMode === 'quiz' && gameState.currentQuiz < quizQuestions.length - 1) {
+                gameState.currentQuiz++;
+                loadContent();
+            }
+        }
+
+        function showHint() {
+            const hints = {
+                'learn': "💡 Klik pada kartu perangkat untuk menandai sebagai sudah dipelajari!",
+                'quiz': "💡 Baca pertanyaan dengan teliti dan ingat fungsi utama setiap perangkat!",
+                'simulation': "💡 Coba tambahkan Router, Switch, dan Firewall untuk jaringan yang optimal!"
+            };
+            
+            showFeedback(hints[gameState.currentMode]);
+        }
+
+        function updateProgress() {
+            const learnedCount = gameState.learnedDevices.length;
+            const totalDevices = networkDevices.length;
+            const progressPercentage = Math.round((learnedCount / totalDevices) * 100);
+            
+            document.getElementById('learned-count').textContent = ${learnedCount}/${totalDevices};
+            document.getElementById('quiz-score').textContent = gameState.quizScore;
+            document.getElementById('progress').textContent = ${progressPercentage}%;
+            
+            // Update level based on progress
+            const newLevel = Math.floor(progressPercentage / 20) + 1;
+            gameState.level = newLevel;
+            document.getElementById('level').textContent = gameState.level;
+        }
+
+        function showFeedback(message, type = 'success') {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = feedback ${type};
+            feedback.style.display = 'block';
+            
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 4000);
+        }
+
+        // Initialize the game
+        loadContent();
+        updateProgress();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98492a9d76305f63',t:'MTc1ODc4OTA5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
